@@ -38,7 +38,7 @@ public class TopicQueueListener implements Runnable {
         ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
 
         if(! pollResult.getMessages().isEmpty()) {
-            logger.info("Received {} messages" + pollResult.getMessages());
+            logger.info("Received {} messages" + pollResult.getMessages().size());
 
             final ConcurrentLinkedQueue<Message> toDLQ = new ConcurrentLinkedQueue<>();
             final ConcurrentLinkedQueue<String> toDelete = new ConcurrentLinkedQueue<>();
@@ -59,7 +59,7 @@ public class TopicQueueListener implements Runnable {
                     return;
                 }
 
-                logger.debug("Processing subject={}, message={}", sqsSubject, sqsMessage);
+                logger.debug("Processing Mercury message subject={}, message={}", sqsSubject, sqsMessage);
 
                 try {
                     messagesRouter.route(new MercuryMessage(topicConfig.getTopicName(), sqsSubject, sqsMessage));

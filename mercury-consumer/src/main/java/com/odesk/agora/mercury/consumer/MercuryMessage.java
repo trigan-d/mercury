@@ -31,8 +31,8 @@ public class MercuryMessage {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         sb.append("TopicName: " + topicName + ",");
-        if (subject != null) sb.append("Subject: " + subject + ",");
-        sb.append("Message: " + message);
+        if (subject != null) sb.append(" Subject: " + subject + ",");
+        sb.append(" Message: " + message);
         sb.append("}");
         return sb.toString();
     }

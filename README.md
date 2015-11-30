@@ -9,4 +9,5 @@ TODOs:
 * handle messages that failed to delete
 * wrap SNS and SQS interactions with hystrix commands
 * create Mercury-Monitor service with UI for current topics and queues lists, manual message publishing/replay, etc.
+* add some unit tests and integration tests
 

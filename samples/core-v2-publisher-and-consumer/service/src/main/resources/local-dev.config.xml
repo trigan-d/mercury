@@ -52,7 +52,7 @@
         <vipAddress>corev2pubcons.mercury.odesk.com</vipAddress>
     </eureka>
     <logging>
-        <level>DEBUG</level>
+        <level>INFO</level>
         <file>
             <enabled>false</enabled>
         </file>
@@ -139,8 +139,8 @@
         <connectionTimeout>600000</connectionTimeout>
         <maxConnections>100</maxConnections>
         <maxErrorRetry>3</maxErrorRetry>
-        <accessKey>AKIAJAHOWRCZUJZR7PVQ</accessKey>
-        <secretKey>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</secretKey>
+        <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
+        <secretKey>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</secretKey>
 
         <topicNames>MercuryTestCoreV2</topicNames>
     </sns>
@@ -152,8 +152,8 @@
         <connectionTimeout>600000</connectionTimeout>
         <maxConnections>100</maxConnections>
         <maxErrorRetry>3</maxErrorRetry>
-        <accessKey>AKIAJAHOWRCZUJZR7PVQ</accessKey>
-        <secretKey>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</secretKey>
+        <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
+        <secretKey>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</secretKey>
 
         <snsEndpoint>sns.us-west-1.amazonaws.com</snsEndpoint>
         <consumerThreadsCorePoolSize>2</consumerThreadsCorePoolSize>
@@ -161,9 +161,14 @@
 
         <subscription1>
             <topicName>MercuryTestCoreV2</topicName>
-            <pollingIntervalMs>100</pollingIntervalMs>
+            <pollingIntervalMs>5000</pollingIntervalMs>
             <pollingBatchSize>10</pollingBatchSize>
         </subscription1>
     </sqs>
 
+    <flags>
+        <anonymousAccess>
+            <enabled>true</enabled>
+        </anonymousAccess>
+    </flags>
 </root>

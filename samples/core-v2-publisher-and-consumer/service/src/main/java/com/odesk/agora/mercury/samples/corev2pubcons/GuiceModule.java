@@ -13,6 +13,7 @@ public class GuiceModule extends com.odesk.agora.guice.GuiceModule<Configuration
 
         if(configuration.sqs.isEnabled()) {
             install(new SQSConsumerModule(configuration.sqs));
+            bind(MessagesLogger.class).asEagerSingleton();
         }
 
         if(configuration.sns.isEnabled()) {

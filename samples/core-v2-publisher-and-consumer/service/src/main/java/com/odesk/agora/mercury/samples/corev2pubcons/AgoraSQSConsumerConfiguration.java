@@ -48,7 +48,8 @@ public class AgoraSQSConsumerConfiguration extends AwsServiceConfiguration imple
     public List<TopicSubscriptionConfiguration> getTopicSubscriptions() {
         if (subscriptions == null) {
             subscriptions = ImmutableList.copyOf(Collections2.filter(Arrays.asList(
-                    subscription1, subscription2, subscription3, subscription4 //etc...
+                    subscription1 /*, subscription2, subscription3, subscription4*/ //etc...
+                    //TODO: 2,3 and 4 are not null! Check if topicName is not empty.
             ), Predicates.notNull()));
         }
         return subscriptions;
