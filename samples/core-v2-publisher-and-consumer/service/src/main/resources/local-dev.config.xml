@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <server>
+        <applicationConnectors>
+            <!-- HTTP-specific options -->
+            <http>
+                <!-- The port on which the HTTP server listens for service requests.
+                     Because Java cannot drop privileges in a POSIX system, these
+                     ports cannot be in the range 1-1024. A port value of 0 will
+                     make the OS use an arbitrary unused port. -->
+                <port>8638</port>
+                <!-- Enables SO_LINGER on the server socket with the specified
+                     linger time. By default, uses the system default. -->
+                <soLingerTime>10s</soLingerTime>
+                <!-- The maximum amount of time a connection is allowed to be idle before being closed.-->
+                <idleTimeout>10s</idleTimeout>
+            </http>
+        </applicationConnectors>
+        <adminConnectors>
+            <http>
+                <!-- The port on which the HTTP server listens for administrative
+                     requests. Subject to the same limitations as "port". If this is
+                     set to the same value as port, the admin routes will be mounted
+                     under /admin. -->
+                <port>8639</port>
+                <!-- Enables SO_LINGER on the server socket with the specified
+                     linger time. By default, uses the system default. -->
+                <soLingerTime>10s</soLingerTime>
+                <!-- The maximum amount of time a connection is allowed to be idle before being closed.-->
+                <idleTimeout>10s</idleTimeout>
+            </http>
+        </adminConnectors>
+    </server>
+    <metadata>
+        <application>corev2pubcons</application>
+        <!--team name-->
+        <owner>Core</owner>
+        <!--team email-->
+        <email>agora-core@elance-odesk.com</email>
+        <!--summary of the service functionality-->
+        <summary>Sample Agora-v2 service with Mercury</summary>
+        <!-- keep it here like this, shall be replaced on resource filtering step with, in **/service/pom.xml filtering shall be included  -->
+        <version>${project.version}</version>
+        <repoUrl>http://stash.odesk.com/projects/AGORA/repos/agora-mercury/browse</repoUrl>
+    </metadata>
+    <eureka>
+        <!--Service name to register to Eureka.-->
+        <name>corev2pubcons</name>
+        <!--Service port to register to Eureka. Host is obtained automatically.-->
+        <port>8638</port>
+        <!--This is the common name which all same service instances must share.-->
+        <vipAddress>corev2pubcons.mercury.odesk.com</vipAddress>
+    </eureka>
+    <logging>
+        <level>DEBUG</level>
+        <file>
+            <enabled>false</enabled>
+        </file>
+        <jsonFile>
+            <enabled>false</enabled>
+        </jsonFile>
+    </logging>
+    <requestLogging>
+        <file>
+            <enabled>false</enabled>
+        </file>
+        <jsonFile>
+            <enabled>false</enabled>
+        </jsonFile>
+    </requestLogging>
+    <eureka>
+        <serviceEnabled>false</serviceEnabled>
+        <!--<datacenter>default</datacenter>-->
+        <!--<environment>test</environment>-->
+        <!--<serviceEnabled>false</serviceEnabled>-->
+        <!--Uncomment to allow local service instance Eureka registration in Dev env with "UP" status.-->
+        <!--Also remove previous definition of eureka.environment=test and eureka.serviceEnabled=false-->
+        <registerLocalInstanceWithUPStatusEnabled>true</registerLocalInstanceWithUPStatusEnabled>
+        <environment>dev</environment>
+        <serviceEnabled>false</serviceEnabled>
+        <shouldUseDns>true</shouldUseDns>
+        <validateInstanceId>false</validateInstanceId>
+        <eurekaServer>
+            <domainName>eureka.dev.agora.odesk.com</domainName>
+            <port>8010</port>
+            <context>eureka/v2</context>
+        </eurekaServer>
+        <region>us-west-1</region>
+        <preferSameZone>true</preferSameZone>
+        <waitTimeInMsWhenSyncEmpty>0</waitTimeInMsWhenSyncEmpty>
+    </eureka>
+    <graphite>
+        <!-- If true, service sends information to graphite simple format endpoint.-->
+        <enabled>false</enabled>
+        <!-- Overrides by console on deployment.-->
+        <host>graphite.odesk.com</host>
+        <!-- Graphite simple interface endpoint; it is overridden by console on deployment.-->
+        <port>2003</port>
+    </graphite>
+    <zipkin>
+        <!--Indicates if Brave/Zipkin components allowed to run
+        Default is FALSE-->
+        <enabled>false</enabled>
+        <!--needed on for using zipkin collector; Overridden on deployment-->
+        <host>host</host>
+        <!--needed on for using zipkin collector; Overridden on deployment-->
+        <port>1</port>
+    </zipkin>
+    <archaius>
+        <dynamicEnabled>false</dynamicEnabled>
+        <configurationService>
+            <enabled>false</enabled>
+        </configurationService>
+    </archaius>
+
+    <hystrix>
+        <command>
+            <default>
+                <execution>
+                    <isolation>
+                        <thread>
+                            <timeoutInMilliseconds>50000</timeoutInMilliseconds>
+                        </thread>
+                    </isolation>
+                </execution>
+            </default>
+        </command>
+    </hystrix>
+
+    <security>
+        <enabled>false</enabled>
+    </security>
+
+
+    <sns>
+        <enabled>true</enabled>
+        <endpoint>sns.us-west-1.amazonaws.com</endpoint>
+        <socketTimeout>600000</socketTimeout>
+        <connectionTimeout>600000</connectionTimeout>
+        <maxConnections>100</maxConnections>
+        <maxErrorRetry>3</maxErrorRetry>
+        <accessKey>AKIAJAHOWRCZUJZR7PVQ</accessKey>
+        <secretKey>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</secretKey>
+
+        <topicNames>MercuryTestCoreV2</topicNames>
+    </sns>
+
+    <sqs>
+        <enabled>true</enabled>
+        <endpoint>sqs.us-west-1.amazonaws.com</endpoint>
+        <socketTimeout>600000</socketTimeout>
+        <connectionTimeout>600000</connectionTimeout>
+        <maxConnections>100</maxConnections>
+        <maxErrorRetry>3</maxErrorRetry>
+        <accessKey>AKIAJAHOWRCZUJZR7PVQ</accessKey>
+        <secretKey>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</secretKey>
+
+        <snsEndpoint>sns.us-west-1.amazonaws.com</snsEndpoint>
+        <consumerThreadsCorePoolSize>2</consumerThreadsCorePoolSize>
+        <queueNamesPrefix>Mercury-samples-corev2pubcons</queueNamesPrefix>
+
+        <subscription1>
+            <topicName>MercuryTestCoreV2</topicName>
+            <pollingIntervalMs>100</pollingIntervalMs>
+            <pollingBatchSize>10</pollingBatchSize>
+        </subscription1>
+    </sqs>
+
+</root>

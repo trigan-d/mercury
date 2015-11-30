@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.odesk.agora.mercury.samples</groupId>
+    <artifactId>corev2pubcons-service</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <properties>
+        <deploymentContext>loca-dev</deploymentContext>
+        <bambooBuildVersion />
+        <shade.main.class>com.odesk.agora.mercury.samples.corev2pubcons.Service</shade.main.class>
+    </properties>
+
+    <parent>
+        <groupId>com.odesk.agora.mercury.samples</groupId>
+        <artifactId>corev2pubcons</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml </relativePath>
+    </parent>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.odesk.agora.mercury</groupId>
+            <artifactId>mercury-publisher</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.odesk.agora.mercury</groupId>
+            <artifactId>mercury-consumer</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>corev2pubcons</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <inherited>true</inherited>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <inherited>true</inherited>
+                <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <inherited>true</inherited>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
