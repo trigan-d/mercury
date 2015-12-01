@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Dmitry Solovyov on 11/30/2015.
  */
-public class MessagesLogger implements Managed {
-    private static final Logger logger = LoggerFactory.getLogger(MessagesLogger.class);
+public class ExampleMessageConsumer implements Managed {
+    private static final Logger logger = LoggerFactory.getLogger(ExampleMessageConsumer.class);
 
     @Inject
     private TopicMessagesRouter router;

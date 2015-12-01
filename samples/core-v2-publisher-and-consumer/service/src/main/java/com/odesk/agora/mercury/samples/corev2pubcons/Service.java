@@ -19,6 +19,6 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
     @Override
     public void run(Configuration configuration, Environment environment) throws Exception {
         super.run(configuration, environment);
-        environment.lifecycle().manage(getGuiceInjector().getInstance(MessagesLogger.class));
+        environment.lifecycle().manage(getGuiceInjector().getInstance(ExampleMessageConsumer.class));
     }
 }
