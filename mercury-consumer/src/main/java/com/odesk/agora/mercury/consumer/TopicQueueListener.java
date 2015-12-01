@@ -38,7 +38,7 @@ public class TopicQueueListener implements Runnable {
         ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
 
         if(! pollResult.getMessages().isEmpty()) {
-            logger.info("Received {} messages" + pollResult.getMessages().size());
+            logger.info("Received {} messages", pollResult.getMessages().size());
 
             final ConcurrentLinkedQueue<Message> toDLQ = new ConcurrentLinkedQueue<>();
             final ConcurrentLinkedQueue<String> toDelete = new ConcurrentLinkedQueue<>();

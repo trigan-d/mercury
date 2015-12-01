@@ -10,6 +10,7 @@ import com.odesk.agora.mercury.consumer.TopicSubscriptionConfiguration;
 import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Dmitry Solovyov on 11/30/2015.
@@ -47,10 +48,9 @@ public class AgoraSQSConsumerConfiguration extends AwsServiceConfiguration imple
     @Override
     public List<TopicSubscriptionConfiguration> getTopicSubscriptions() {
         if (subscriptions == null) {
-            subscriptions = ImmutableList.copyOf(Collections2.filter(Arrays.asList(
-                    subscription1 /*, subscription2, subscription3, subscription4*/ //etc...
-                    //TODO: 2,3 and 4 are not null! Check if topicName is not empty.
-            ), Predicates.notNull()));
+            subscriptions = ImmutableList.copyOf(Arrays.asList(
+                    subscription1, subscription2, subscription3, subscription4 //etc...
+            ).stream().filter(sub -> (sub != null && sub.getTopicName() != null)).collect(Collectors.toList()));
         }
         return subscriptions;
     }
