@@ -10,8 +10,10 @@ import com.amazonaws.util.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
@@ -77,11 +79,9 @@ public class TopicQueueListener implements Runnable {
             }
 
             if(!toDelete.isEmpty()) {
-                //TODO: is it OK to use numbers as ids of DeleteMessageBatchRequestEntry? SQS documentation says only that the ids should be unique within the single batch delete request.
-                ArrayList<DeleteMessageBatchRequestEntry> deleteRequestEntries = new ArrayList<>();
-                for(int i=0; i<toDelete.size(); i++) {
-                    deleteRequestEntries.add(new DeleteMessageBatchRequestEntry(String.valueOf(i), toDelete.poll()));
-                }
+                List<DeleteMessageBatchRequestEntry> deleteRequestEntries = toDelete.stream()
+                        .map(receiptHandle -> new DeleteMessageBatchRequestEntry(UUID.randomUUID().toString(), receiptHandle))
+                        .collect(Collectors.toList());
                 sqsClient.deleteMessageBatch(queueUrl, deleteRequestEntries);
                 //TODO: handle messages that failed to delete.
             }
