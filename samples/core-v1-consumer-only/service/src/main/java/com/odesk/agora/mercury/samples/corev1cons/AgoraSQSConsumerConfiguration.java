@@ -1,4 +1,4 @@
-package com.odesk.agora.mercury.samples.corev2pubcons;
+package com.odesk.agora.mercury.samples.corev1cons;
 
 import com.google.common.collect.ImmutableList;
 import com.odesk.agora.configuration.AwsServiceConfiguration;

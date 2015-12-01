@@ -1,44 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-    <server>
-        <applicationConnectors>
-            <!-- HTTP-specific options -->
-            <http>
-                <!-- The port on which the HTTP server listens for service requests.
-                     Because Java cannot drop privileges in a POSIX system, these
-                     ports cannot be in the range 1-1024. A port value of 0 will
-                     make the OS use an arbitrary unused port. -->
-                <port>8638</port>
-                <!-- Enables SO_LINGER on the server socket with the specified
-                     linger time. By default, uses the system default. -->
-                <soLingerTime>10s</soLingerTime>
-                <!-- The maximum amount of time a connection is allowed to be idle before being closed.-->
-                <idleTimeout>10s</idleTimeout>
-            </http>
-        </applicationConnectors>
-        <adminConnectors>
-            <http>
-                <!-- The port on which the HTTP server listens for administrative
-                     requests. Subject to the same limitations as "port". If this is
-                     set to the same value as port, the admin routes will be mounted
-                     under /admin. -->
-                <port>8639</port>
-                <!-- Enables SO_LINGER on the server socket with the specified
-                     linger time. By default, uses the system default. -->
-                <soLingerTime>10s</soLingerTime>
-                <!-- The maximum amount of time a connection is allowed to be idle before being closed.-->
-                <idleTimeout>10s</idleTimeout>
-            </http>
-        </adminConnectors>
-    </server>
+    <http>
+        <port>8061</port>
+        <adminPort>8062</adminPort>
+    </http>
     <metadata>
-        <application>corev2pubcons</application>
+        <application>corev1cons</application>
         <!--team name-->
         <owner>Core</owner>
         <!--team email-->
         <email>agora-core@elance-odesk.com</email>
         <!--summary of the service functionality-->
-        <summary>Sample Agora-v2 service with Mercury</summary>
+        <summary>Sample Agora-v1 service with Mercury consumer</summary>
         <!-- keep it here like this, shall be replaced on resource filtering step with, in **/service/pom.xml filtering shall be included  -->
         <version>${project.version}</version>
         <repoUrl>http://stash.odesk.com/projects/AGORA/repos/agora-mercury/browse</repoUrl>
@@ -62,9 +35,9 @@
     </requestLogging>
     <eureka>
         <serviceEnabled>false</serviceEnabled>
-        <name>corev2pubcons</name>
-        <port>8638</port>
-        <vipAddress>corev2pubcons.mercury.odesk.com</vipAddress>
+        <name>corev1cons</name>
+        <port>8061</port>
+        <vipAddress>corev1cons.mercury.odesk.com</vipAddress>
         <!--<datacenter>default</datacenter>-->
         <!--<environment>test</environment>-->
         <!--<serviceEnabled>false</serviceEnabled>-->
@@ -127,19 +100,6 @@
     </security>
 
 
-    <sns>
-        <enabled>true</enabled>
-        <endpoint>sns.us-west-1.amazonaws.com</endpoint>
-        <socketTimeout>600000</socketTimeout>
-        <connectionTimeout>600000</connectionTimeout>
-        <maxConnections>100</maxConnections>
-        <maxErrorRetry>3</maxErrorRetry>
-        <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
-        <secretKey>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</secretKey>
-
-        <topicNames>MercuryTestCoreV2</topicNames>
-    </sns>
-
     <sqs>
         <enabled>true</enabled>
         <endpoint>sqs.us-west-1.amazonaws.com</endpoint>
@@ -152,10 +112,10 @@
 
         <snsEndpoint>sns.us-west-1.amazonaws.com</snsEndpoint>
         <consumerThreadsCorePoolSize>2</consumerThreadsCorePoolSize>
-        <queueNamesPrefix>Mercury-samples-corev2pubcons</queueNamesPrefix>
+        <queueNamesPrefix>Mercury-samples-corev1cons</queueNamesPrefix>
 
         <subscription1>
-            <topicName>MercuryTestCoreV2</topicName>
+            <topicName>MercuryTestCoreV1</topicName>
             <pollingIntervalMs>5000</pollingIntervalMs>
             <pollingBatchSize>10</pollingBatchSize>
         </subscription1>
