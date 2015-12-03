@@ -1,6 +1,7 @@
 package com.odesk.agora.mercury.samples.corev1cons;
 
-import com.odesk.agora.mercury.consumer.TopicMessagesRouter;
+import com.odesk.agora.configuration.Configuration;
+import com.odesk.agora.mercury.sqs.MercuryMessagesDispatcher;
 import com.yammer.dropwizard.config.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,5 @@ public class Service extends com.odesk.agora.Service<Configuration, GuiceModule>
 
         //Here we show just one of possible ways to register a topic consumer. Compare with core-v2 sample.
         environment.manage(guiceInjector.getInstance(ExampleMessageConsumer.class));
-        guiceInjector.getInstance(TopicMessagesRouter.class).setTopicConsumer("MercuryTestCoreV1", message -> logger.info("Received Mercury message {}", message));
     }
 }

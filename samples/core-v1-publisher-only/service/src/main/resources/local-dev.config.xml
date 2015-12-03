@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
     <http>
-        <port>8071</port>
-        <adminPort>8072</adminPort>
+        <port>8061</port>
+        <adminPort>8062</adminPort>
     </http>
     <metadata>
         <application>corev1cons</application>
@@ -110,27 +110,9 @@
             <maxErrorRetry>3</maxErrorRetry>
             <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
             <secretKey>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</secretKey>
+
+            <topicNames>MercuryTestCoreV1</topicNames>
         </sns>
-
-        <sqs>
-            <enabled>true</enabled>
-            <endpoint>sqs.us-west-1.amazonaws.com</endpoint>
-            <socketTimeout>600000</socketTimeout>
-            <connectionTimeout>600000</connectionTimeout>
-            <maxConnections>100</maxConnections>
-            <maxErrorRetry>3</maxErrorRetry>
-            <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
-            <secretKey>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</secretKey>
-
-            <consumerThreadsCorePoolSize>2</consumerThreadsCorePoolSize>
-            <queueNamesPrefix>Mercury-samples-corev1cons</queueNamesPrefix>
-
-            <subscription1>
-                <topicName>MercuryTestCoreV1</topicName>
-                <pollingIntervalMs>5000</pollingIntervalMs>
-                <pollingBatchSize>10</pollingBatchSize>
-            </subscription1>
-        </sqs>
     </mercury>
 
     <flags>

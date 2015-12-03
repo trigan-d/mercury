@@ -1,4 +1,4 @@
-package com.odesk.agora.mercury.samples.corev2pubcons;
+package com.odesk.agora.mercury.samples.corev1pub;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -13,7 +13,7 @@ import javax.ws.rs.QueryParam;
  */
 @Path("/")
 public class Resource extends com.odesk.agora.Resource {
-    @Inject @Named("MercuryTestCoreV2")
+    @Inject @Named("MercuryTestCoreV1")
     private MercurySNSTopicPublisher topicPublisher;
 
     @GET

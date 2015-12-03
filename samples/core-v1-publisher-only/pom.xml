@@ -2,9 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.odesk.agora.mercury.samples</groupId>
-    <artifactId>corev2pubcons</artifactId>
+    <artifactId>corev1pub</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -13,9 +12,9 @@
     </properties>
 
     <parent>
-        <groupId>com.odesk.agora</groupId>
-        <artifactId>agora-v2</artifactId>
-        <version>2.0.10-AGORA-5678-SNAPSHOT</version>
+        <groupId>com.odesk</groupId>
+        <artifactId>agora</artifactId>
+        <version>1.22.2-AGORA-5678-SNAPSHOT</version>
     </parent>
 
     <modules>
@@ -25,8 +24,8 @@
     <dependencies>
         <dependency>
             <groupId>com.odesk.agora</groupId>
-            <artifactId>agora-core-v2</artifactId>
-            <version>2.0.10-AGORA-5678-SNAPSHOT</version>
+            <artifactId>core</artifactId>
+            <version>1.22.2-AGORA-5678-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -76,13 +75,6 @@
     </distributionManagement>
 
     <build>
-        <finalName>corev2pubcons</finalName>
-        <resources>
-            <resource>
-                <directory>service/src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -95,23 +87,32 @@
                 </configuration>
             </plugin>
             <plugin>
-                <inherited>true</inherited>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.2</version>
             </plugin>
             <plugin>
-                <inherited>true</inherited>
-                <artifactId>maven-resources-plugin</artifactId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <argLine>-Duser.timezone=UTC -Dfile.encoding=UTF8</argLine>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <version>2.13</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
-                <inherited>true</inherited>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <inherited>true</inherited>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
             </plugin>
         </plugins>
     </build>

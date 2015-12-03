@@ -3,24 +3,24 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.odesk.agora.mercury.samples</groupId>
-    <artifactId>corev2pubcons-service</artifactId>
+    <artifactId>corev1pub-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+
+    <parent>
+        <groupId>com.odesk.agora.mercury.samples</groupId>
+        <artifactId>corev1pub</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
     <properties>
         <deploymentContext>loca-dev</deploymentContext>
         <bambooBuildVersion />
-        <shade.main.class>com.odesk.agora.mercury.samples.corev2pubcons.Service</shade.main.class>
+        <shade.main.class>com.odesk.agora.mercury.samples.corev1pub.Service</shade.main.class>
     </properties>
 
-    <parent>
-        <groupId>com.odesk.agora.mercury.samples</groupId>
-        <artifactId>corev2pubcons</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml </relativePath>
-    </parent>
-
     <build>
-        <finalName>corev2pubcons</finalName>
+        <finalName>corev1pub</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -43,6 +43,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
             </plugin>
             <plugin>
+                <inherited>true</inherited>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>

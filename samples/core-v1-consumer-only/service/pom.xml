@@ -19,14 +19,6 @@
         <shade.main.class>com.odesk.agora.mercury.samples.corev1cons.Service</shade.main.class>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.odesk.agora.mercury</groupId>
-            <artifactId>mercury-consumer</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
-
     <build>
         <finalName>corev1cons</finalName>
         <resources>
