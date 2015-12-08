@@ -1,7 +1,6 @@
 package com.odesk.agora.mercury.samples.corev1cons;
 
 import com.odesk.agora.configuration.Configuration;
-import com.odesk.agora.mercury.sqs.MercuryMessagesDispatcher;
 import com.yammer.dropwizard.config.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

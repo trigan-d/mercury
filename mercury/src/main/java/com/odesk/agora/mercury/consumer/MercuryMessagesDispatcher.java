@@ -1,9 +1,10 @@
-package com.odesk.agora.mercury.sqs;
+package com.odesk.agora.mercury.consumer;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.util.Topics;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.odesk.agora.mercury.MercuryMessage;
+import com.odesk.agora.mercury.sqs.SQSConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,12 +26,12 @@ public class MercuryMessagesDispatcher {
 
     private final ConcurrentHashMap<String, Consumer<MercuryMessage>> consumers = new ConcurrentHashMap<>();
 
-    public MercuryMessagesDispatcher(SQSConfiguration sqsConfig, AmazonSQSClient sqsClient, AmazonSNSClient snsClient) {
-        listenersExecutor = Executors.newScheduledThreadPool(sqsConfig.getConsumerThreadsCorePoolSize());
+    public MercuryMessagesDispatcher(ConsumerConfiguration consumerConfig, AmazonSQSClient sqsClient, AmazonSNSClient snsClient) {
+        listenersExecutor = Executors.newScheduledThreadPool(consumerConfig.getThreadsCorePoolSize());
 
-        for(TopicSubscriptionConfiguration topicConfig : sqsConfig.getTopicSubscriptions()) {
+        for(TopicSubscriptionConfiguration topicConfig : consumerConfig.getTopicSubscriptions()) {
             String topicArn = snsClient.createTopic(topicConfig.getTopicName()).getTopicArn();
-            String queueUrl = sqsClient.createQueue(sqsConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + topicConfig.getTopicName()).getQueueUrl();
+            String queueUrl = sqsClient.createQueue(consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + topicConfig.getTopicName()).getQueueUrl();
             String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
 
             logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", topicConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);

@@ -2,7 +2,7 @@ package com.odesk.agora.mercury.samples.corev1cons;
 
 import com.google.inject.Inject;
 import com.odesk.agora.mercury.MercuryMessage;
-import com.odesk.agora.mercury.sqs.MercuryMessagesDispatcher;
+import com.odesk.agora.mercury.consumer.MercuryMessagesDispatcher;
 import com.yammer.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

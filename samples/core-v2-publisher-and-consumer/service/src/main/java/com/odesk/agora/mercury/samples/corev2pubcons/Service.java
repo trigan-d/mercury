@@ -3,7 +3,7 @@ package com.odesk.agora.mercury.samples.corev2pubcons;
 import com.odesk.agora.AgoraApplication;
 import com.odesk.agora.configuration.Configuration;
 import com.odesk.agora.guice.GuiceModule;
-import com.odesk.agora.mercury.sqs.MercuryMessagesDispatcher;
+import com.odesk.agora.mercury.consumer.MercuryMessagesDispatcher;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

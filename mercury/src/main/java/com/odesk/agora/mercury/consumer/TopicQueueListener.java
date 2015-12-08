@@ -1,4 +1,4 @@
-package com.odesk.agora.mercury.sqs;
+package com.odesk.agora.mercury.consumer;
 
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.DeleteMessageBatchRequestEntry;
@@ -54,8 +54,8 @@ public class TopicQueueListener implements Runnable {
 
                 try {
                     JSONObject body = new JSONObject(message.getBody());
-                    sqsSubject = body.getString("Subject");
-                    sqsMessage = body.getString("Message");
+                    sqsSubject = body.tryGetString("Subject");
+                    sqsMessage = body.tryGetString("Message");
                 } catch (JSONException e) {
                     logger.error("Can't handle SNS message due to json error", e);
                     toDLQ.add(message);
