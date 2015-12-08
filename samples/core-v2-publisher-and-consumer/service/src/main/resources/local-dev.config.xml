@@ -127,39 +127,40 @@
     </security>
 
 
-    <sns>
-        <enabled>true</enabled>
-        <endpoint>sns.us-west-1.amazonaws.com</endpoint>
-        <socketTimeout>600000</socketTimeout>
-        <connectionTimeout>600000</connectionTimeout>
-        <maxConnections>100</maxConnections>
-        <maxErrorRetry>3</maxErrorRetry>
-        <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
-        <secretKey>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</secretKey>
+    <mercury>
+        <sns>
+            <enabled>true</enabled>
+            <endpoint>sns.us-west-1.amazonaws.com</endpoint>
+            <socketTimeout>600000</socketTimeout>
+            <connectionTimeout>600000</connectionTimeout>
+            <maxConnections>100</maxConnections>
+            <maxErrorRetry>3</maxErrorRetry>
+            <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
+            <secretKey>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</secretKey>
 
-        <topicNames>MercuryTestCoreV2</topicNames>
-    </sns>
+            <topicNames>MercuryTestCoreV2</topicNames>
+        </sns>
 
-    <sqs>
-        <enabled>true</enabled>
-        <endpoint>sqs.us-west-1.amazonaws.com</endpoint>
-        <socketTimeout>600000</socketTimeout>
-        <connectionTimeout>600000</connectionTimeout>
-        <maxConnections>100</maxConnections>
-        <maxErrorRetry>3</maxErrorRetry>
-        <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
-        <secretKey>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</secretKey>
+        <sqs>
+            <enabled>true</enabled>
+            <endpoint>sqs.us-west-1.amazonaws.com</endpoint>
+            <socketTimeout>600000</socketTimeout>
+            <connectionTimeout>600000</connectionTimeout>
+            <maxConnections>100</maxConnections>
+            <maxErrorRetry>3</maxErrorRetry>
+            <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
+            <secretKey>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</secretKey>
 
-        <snsEndpoint>sns.us-west-1.amazonaws.com</snsEndpoint>
-        <consumerThreadsCorePoolSize>2</consumerThreadsCorePoolSize>
-        <queueNamesPrefix>Mercury-samples-corev2pubcons</queueNamesPrefix>
+            <consumerThreadsCorePoolSize>2</consumerThreadsCorePoolSize>
+            <queueNamesPrefix>Mercury-samples-corev2pubcons</queueNamesPrefix>
 
-        <subscription1>
-            <topicName>MercuryTestCoreV2</topicName>
-            <pollingIntervalMs>5000</pollingIntervalMs>
-            <pollingBatchSize>10</pollingBatchSize>
-        </subscription1>
-    </sqs>
+            <subscription1>
+                <topicName>MercuryTestCoreV2</topicName>
+                <pollingIntervalMs>5000</pollingIntervalMs>
+                <pollingBatchSize>10</pollingBatchSize>
+            </subscription1>
+        </sqs>
+    </mercury>
 
     <flags>
         <anonymousAccess>
