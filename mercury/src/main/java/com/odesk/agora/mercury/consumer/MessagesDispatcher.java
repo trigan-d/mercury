@@ -35,6 +35,7 @@ public class MessagesDispatcher {
             String queueUrl = sqsClient.createQueue(consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + topicConfig.getTopicName()).getQueueUrl();
             String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
 
+
             logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", topicConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
 
             listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(topicConfig, sqsClient, queueUrl, this),
@@ -52,11 +53,14 @@ public class MessagesDispatcher {
         logger.info("Consumer for topic {} unregistered", topicName);
     }
 
+    public boolean hasConsumerForTopic(String topicName) {
+        return consumers.containsKey(topicName);
+    }
+
     public void route(MercuryMessage message) {
         Consumer<MercuryMessage> consumer = consumers.get(message.getTopicName());
         if(consumer == null) {
-            logger.warn("No consumer found for message {}", message);
-            //TODO: what should we do with the messages that were not consumed? Move them to DLQ?
+            throw new IllegalStateException("No consumer found for topic " + message.getTopicName());
         } else {
             consumer.accept(message);
         }

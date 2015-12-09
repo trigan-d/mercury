@@ -38,6 +38,11 @@ public class TopicQueueListener implements Runnable {
     }
 
     public void run() {
+        if(! messagesDispatcher.hasConsumerForTopic(topicConfig.getTopicName())) {
+            logger.warn("No consumer registered for topic {} yet. Skipping SQS fetch.", topicConfig.getTopicName());
+            return;
+        }
+
         ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
 
         if(! pollResult.getMessages().isEmpty()) {
