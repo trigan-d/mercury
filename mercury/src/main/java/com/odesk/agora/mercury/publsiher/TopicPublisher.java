@@ -9,19 +9,19 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Dmitry Solovyov on 11/23/2015.
  */
-public class MercuryTopicPublisher {
+public class TopicPublisher {
     private final Logger logger;
 
     private final AmazonSNSClient snsClient;
     private final String topicName;
     private final String topicArn;
 
-    public MercuryTopicPublisher(AmazonSNSClient snsClient, String topicName, String topicArn) {
+    public TopicPublisher(AmazonSNSClient snsClient, String topicName, String topicArn) {
         this.snsClient = snsClient;
         this.topicName = topicName;
         this.topicArn = topicArn;
 
-        logger = LoggerFactory.getLogger(MercuryTopicPublisher.class + "-" + topicName);
+        logger = LoggerFactory.getLogger(TopicPublisher.class + "-" + topicName);
     }
 
     public String publish(PublishRequest publishRequest) {

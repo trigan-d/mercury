@@ -13,9 +13,6 @@ import java.util.stream.Collectors;
  */
 public class ConsumerConfiguration {
     @NotNull
-    private boolean enabled;
-
-    @NotNull
     @Min(1)
     @Max(10)
     private int threadsCorePoolSize;
@@ -62,7 +59,7 @@ public class ConsumerConfiguration {
             ).stream().filter(sub -> (sub != null && sub.getTopicName() != null)).collect(Collectors.toList()));
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public void setQueueNamesPrefix(String queueNamesPrefix) {
+        this.queueNamesPrefix = queueNamesPrefix;
     }
 }

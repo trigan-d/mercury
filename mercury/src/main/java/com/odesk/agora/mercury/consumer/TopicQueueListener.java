@@ -25,10 +25,10 @@ public class TopicQueueListener implements Runnable {
     private final TopicSubscriptionConfiguration topicConfig;
     private final AmazonSQSClient sqsClient;
     private final String queueUrl;
-    private final MercuryMessagesDispatcher messagesDispatcher;
+    private final MessagesDispatcher messagesDispatcher;
     private final ReceiveMessageRequest receiveMessageRequest;
 
-    public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSClient sqsClient, String queueUrl, MercuryMessagesDispatcher messagesDispatcher) {
+    public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
         this.topicConfig = topicConfig;
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;

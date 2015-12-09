@@ -11,21 +11,21 @@ import java.util.stream.Collectors;
  */
 public class PublisherConfiguration {
     @NotNull
-    private boolean enabled;
+    private String topicNamesPrefix;
 
-    private String topicNames;
+    private String topicsForPublishing;
 
-    public String getTopicNames() {
-        return topicNames;
-    }
-
-    public Set<String> getTopicNamesSet() {
-        return (topicNames == null || topicNames.isEmpty()) ?
+    public Set<String> getPublisherTopics() {
+        return (topicsForPublishing == null || topicsForPublishing.isEmpty()) ?
                 Collections.emptySet() :
-                Arrays.stream(topicNames.split(",")).map(String::trim).collect(Collectors.toSet());
+                Arrays.stream(topicsForPublishing.split(",")).map(String::trim).collect(Collectors.toSet());
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public String getTopicNamesPrefix() {
+        return topicNamesPrefix;
+    }
+
+    public void setTopicNamesPrefix(String topicNamesPrefix) {
+        this.topicNamesPrefix = topicNamesPrefix;
     }
 }

@@ -109,9 +109,6 @@
             <secretKey>6p776nAdmKiU4T7D7Kh9Ntsyow1stRDQsvg6bVpy</secretKey>
         </sqs>
         <consumer>
-            <enabled>true</enabled>
-            <threadsCorePoolSize>2</threadsCorePoolSize>
-            <queueNamesPrefix>Mercury-samples-corev1cons</queueNamesPrefix>
             <subscription1>
                 <topicName>MercuryTestCoreV1</topicName>
                 <pollingIntervalMs>5000</pollingIntervalMs>

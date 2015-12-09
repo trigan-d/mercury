@@ -137,13 +137,9 @@
             <secretKey>6p776nAdmKiU4T7D7Kh9Ntsyow1stRDQsvg6bVpy</secretKey>
         </sqs>
         <publisher>
-            <enabled>true</enabled>
-            <topicNames>MercuryTestCoreV2</topicNames>
+            <topicsForPublishing>MercuryTestCoreV2</topicsForPublishing>
         </publisher>
         <consumer>
-            <enabled>true</enabled>
-            <threadsCorePoolSize>2</threadsCorePoolSize>
-            <queueNamesPrefix>Mercury-samples-corev2pubcons</queueNamesPrefix>
             <subscription1>
                 <topicName>MercuryTestCoreV2</topicName>
                 <pollingIntervalMs>5000</pollingIntervalMs>
