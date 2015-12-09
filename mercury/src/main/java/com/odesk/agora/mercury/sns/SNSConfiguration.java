@@ -7,8 +7,6 @@ import java.util.Set;
  * Created by Dmitry Solovyov on 11/23/2015.
  */
 public interface SNSConfiguration {
-    boolean isEnabled();
-
     String getEndpoint();
 
     int getSocketTimeout();
@@ -22,7 +20,4 @@ public interface SNSConfiguration {
     String getAccessKey();
 
     String getSecretKey();
-
-    @NotNull
-    Set<String> getTopicsForPublishing();
 }

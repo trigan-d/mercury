@@ -2,7 +2,7 @@ package com.odesk.agora.mercury.samples.corev2pubcons;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.odesk.agora.mercury.sns.MercurySNSTopicPublisher;
+import com.odesk.agora.mercury.publsiher.TopicPublisher;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -14,7 +14,7 @@ import javax.ws.rs.QueryParam;
 @Path("/")
 public class Resource extends com.odesk.agora.Resource {
     @Inject @Named("MercuryTestCoreV2")
-    private MercurySNSTopicPublisher topicPublisher;
+    private TopicPublisher topicPublisher;
 
     @GET
     @Path("/publish")

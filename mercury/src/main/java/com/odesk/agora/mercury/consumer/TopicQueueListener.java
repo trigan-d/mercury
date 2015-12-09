@@ -1,4 +1,4 @@
-package com.odesk.agora.mercury.sqs;
+package com.odesk.agora.mercury.consumer;
 
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.DeleteMessageBatchRequestEntry;
@@ -25,10 +25,10 @@ public class TopicQueueListener implements Runnable {
     private final TopicSubscriptionConfiguration topicConfig;
     private final AmazonSQSClient sqsClient;
     private final String queueUrl;
-    private final MercuryMessagesDispatcher messagesDispatcher;
+    private final MessagesDispatcher messagesDispatcher;
     private final ReceiveMessageRequest receiveMessageRequest;
 
-    public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSClient sqsClient, String queueUrl, MercuryMessagesDispatcher messagesDispatcher) {
+    public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
         this.topicConfig = topicConfig;
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
@@ -38,6 +38,11 @@ public class TopicQueueListener implements Runnable {
     }
 
     public void run() {
+        if(! messagesDispatcher.hasConsumerForTopic(topicConfig.getTopicName())) {
+            logger.warn("No consumer registered for topic {} yet. Skipping SQS fetch.", topicConfig.getTopicName());
+            return;
+        }
+
         ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
 
         if(! pollResult.getMessages().isEmpty()) {
@@ -54,8 +59,8 @@ public class TopicQueueListener implements Runnable {
 
                 try {
                     JSONObject body = new JSONObject(message.getBody());
-                    sqsSubject = body.getString("Subject");
-                    sqsMessage = body.getString("Message");
+                    sqsSubject = body.tryGetString("Subject");
+                    sqsMessage = body.tryGetString("Message");
                 } catch (JSONException e) {
                     logger.error("Can't handle SNS message due to json error", e);
                     toDLQ.add(message);

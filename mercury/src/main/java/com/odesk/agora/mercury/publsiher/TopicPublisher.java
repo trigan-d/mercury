@@ -1,4 +1,4 @@
-package com.odesk.agora.mercury.sns;
+package com.odesk.agora.mercury.publsiher;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
@@ -9,19 +9,19 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Dmitry Solovyov on 11/23/2015.
  */
-public class MercurySNSTopicPublisher {
+public class TopicPublisher {
     private final Logger logger;
 
     private final AmazonSNSClient snsClient;
     private final String topicName;
     private final String topicArn;
 
-    public MercurySNSTopicPublisher(AmazonSNSClient snsClient, String topicName, String topicArn) {
+    public TopicPublisher(AmazonSNSClient snsClient, String topicName, String topicArn) {
         this.snsClient = snsClient;
         this.topicName = topicName;
         this.topicArn = topicArn;
 
-        logger = LoggerFactory.getLogger(MercurySNSTopicPublisher.class + "-" + topicName);
+        logger = LoggerFactory.getLogger(TopicPublisher.class + "-" + topicName);
     }
 
     public String publish(PublishRequest publishRequest) {
