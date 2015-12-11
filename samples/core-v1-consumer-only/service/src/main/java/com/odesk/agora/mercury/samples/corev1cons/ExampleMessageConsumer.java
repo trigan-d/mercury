@@ -18,16 +18,16 @@ public class ExampleMessageConsumer implements Managed {
     private static final Logger logger = LoggerFactory.getLogger(ExampleMessageConsumer.class);
 
     @Inject
-    private MessagesDispatcher router;
+    private MessagesDispatcher dispatcher;
 
     @Override
     public void start() throws Exception {
-        router.setTopicConsumer("MercuryTestCoreV1", this::logMessage);
+        dispatcher.setTopicConsumer("MercuryTestCoreV1", this::logMessage);
     }
 
     @Override
     public void stop() throws Exception {
-        router.removeTopicConsumer("MercuryTestCoreV1");
+        dispatcher.removeTopicConsumer("MercuryTestCoreV1");
     }
 
     private void logMessage(MercuryMessage message) {

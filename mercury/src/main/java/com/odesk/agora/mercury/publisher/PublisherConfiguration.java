@@ -1,4 +1,4 @@
-package com.odesk.agora.mercury.publsiher;
+package com.odesk.agora.mercury.publisher;
 
 import javax.validation.constraints.NotNull;
 import java.util.Arrays;

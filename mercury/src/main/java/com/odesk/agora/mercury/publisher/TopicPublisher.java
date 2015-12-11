@@ -1,4 +1,4 @@
-package com.odesk.agora.mercury.publsiher;
+package com.odesk.agora.mercury.publisher;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;

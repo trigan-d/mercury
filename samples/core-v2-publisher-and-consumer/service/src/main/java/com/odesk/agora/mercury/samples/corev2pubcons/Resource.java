@@ -2,7 +2,7 @@ package com.odesk.agora.mercury.samples.corev2pubcons;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.odesk.agora.mercury.publsiher.TopicPublisher;
+import com.odesk.agora.mercury.publisher.TopicPublisher;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

@@ -4,8 +4,8 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.util.Topics;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.odesk.agora.mercury.MercuryMessage;
-import com.odesk.agora.mercury.publsiher.PublisherConfiguration;
-import com.odesk.agora.mercury.publsiher.TopicPublishersFactory;
+import com.odesk.agora.mercury.publisher.PublisherConfiguration;
+import com.odesk.agora.mercury.publisher.TopicPublishersFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,6 @@ public class MessagesDispatcher {
             String topicArn = snsClient.createTopic(publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + topicConfig.getTopicName()).getTopicArn();
             String queueUrl = sqsClient.createQueue(consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + topicConfig.getTopicName()).getQueueUrl();
             String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
-
 
             logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", topicConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
 
