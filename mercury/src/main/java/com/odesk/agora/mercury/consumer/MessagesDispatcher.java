@@ -9,6 +9,8 @@ import com.odesk.agora.mercury.publisher.TopicPublishersFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -22,6 +24,7 @@ public class MessagesDispatcher {
     private static final Logger logger = LoggerFactory.getLogger(MessagesDispatcher.class);
 
     public static final String QUEUE_NAME_DELIMITER = "-";
+    public static final String DLQ_NAME_POSTFIX = "DLQ";
 
     private ScheduledExecutorService listenersExecutor;
 
@@ -30,15 +33,30 @@ public class MessagesDispatcher {
     public MessagesDispatcher(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig, AmazonSQSClient sqsClient, AmazonSNSClient snsClient) {
         listenersExecutor = Executors.newScheduledThreadPool(consumerConfig.getThreadsCorePoolSize());
 
-        for (TopicSubscriptionConfiguration topicConfig : consumerConfig.getTopicSubscriptions()) {
-            String topicArn = snsClient.createTopic(publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + topicConfig.getTopicName()).getTopicArn();
-            String queueUrl = sqsClient.createQueue(consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + topicConfig.getTopicName()).getQueueUrl();
+        for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
+            String queueName = consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + subscriptionConfig.getTopicName();
+
+            String topicArn = snsClient.createTopic(publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + subscriptionConfig.getTopicName()).getTopicArn();
+            String queueUrl = sqsClient.createQueue(queueName).getQueueUrl();
             String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
 
-            logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", topicConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
+            logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subscriptionConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
 
-            listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(topicConfig, sqsClient, queueUrl, this),
-                    topicConfig.getPollingIntervalMs(), topicConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
+            listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig, sqsClient, queueUrl, this),
+                    subscriptionConfig.getPollingIntervalMs(), subscriptionConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
+
+            if(subscriptionConfig.getDLQConfig().isEnabled()) {
+                String dlqName = queueName + QUEUE_NAME_DELIMITER + DLQ_NAME_POSTFIX;
+                String dlqUrl = sqsClient.createQueue(dlqName).getQueueUrl();
+                String dlqArn = sqsClient.getQueueAttributes(dlqUrl, Arrays.asList("QueueArn")).getAttributes().get("QueueArn");
+
+                sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("RedrivePolicy",
+                        "{\"maxReceiveCount\":\"" + subscriptionConfig.getMaxReceiveCount() + "\", \"deadLetterTargetArn\":\"" + dlqArn + "\"}"));
+
+                logger.info("DLQ {} configured for topic {}.", dlqUrl, subscriptionConfig.getTopicName());
+
+                //TODO: schedule DLQ listener and provide DLQ consumers registration
+            }
         }
     }
 

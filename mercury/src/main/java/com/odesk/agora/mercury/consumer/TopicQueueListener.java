@@ -22,24 +22,24 @@ import java.util.stream.Collectors;
 public class TopicQueueListener implements Runnable {
     private final Logger logger;
 
-    private final TopicSubscriptionConfiguration topicConfig;
+    private final TopicSubscriptionConfiguration subscriptionConfig;
     private final AmazonSQSClient sqsClient;
     private final String queueUrl;
     private final MessagesDispatcher messagesDispatcher;
     private final ReceiveMessageRequest receiveMessageRequest;
 
-    public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
-        this.topicConfig = topicConfig;
+    public TopicQueueListener(TopicSubscriptionConfiguration subscriptionConfig, AmazonSQSClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
+        this.subscriptionConfig = subscriptionConfig;
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.messagesDispatcher = messagesDispatcher;
-        logger = LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + topicConfig.getTopicName());
-        receiveMessageRequest = new ReceiveMessageRequest().withQueueUrl(queueUrl).withMaxNumberOfMessages(topicConfig.getPollingBatchSize());
+        logger = LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + subscriptionConfig.getTopicName());
+        receiveMessageRequest = new ReceiveMessageRequest().withQueueUrl(queueUrl).withMaxNumberOfMessages(subscriptionConfig.getPollingBatchSize());
     }
 
     public void run() {
-        if(! messagesDispatcher.hasConsumerForTopic(topicConfig.getTopicName())) {
-            logger.warn("No consumer registered for topic {} yet. Skipping SQS fetch.", topicConfig.getTopicName());
+        if(! messagesDispatcher.hasConsumerForTopic(subscriptionConfig.getTopicName())) {
+            logger.warn("No consumer registered for topic {} yet. Skipping SQS fetch.", subscriptionConfig.getTopicName());
             return;
         }
 
@@ -48,7 +48,6 @@ public class TopicQueueListener implements Runnable {
         if(! pollResult.getMessages().isEmpty()) {
             logger.info("Received {} messages", pollResult.getMessages().size());
 
-            final ConcurrentLinkedQueue<Message> toDLQ = new ConcurrentLinkedQueue<>();
             final ConcurrentLinkedQueue<String> toDelete = new ConcurrentLinkedQueue<>();
 
             //TODO: should we allow to choose between parallel and non-parallel messages processing via TopicSubscriptionConfiguration?
@@ -63,26 +62,20 @@ public class TopicQueueListener implements Runnable {
                     sqsMessage = body.tryGetString("Message");
                 } catch (JSONException e) {
                     logger.error("Can't handle SNS message due to json error", e);
-                    toDLQ.add(message);
                     return;
                 }
 
                 logger.debug("Processing Mercury message subject={}, message={}", sqsSubject, sqsMessage);
 
                 try {
-                    messagesDispatcher.route(new MercuryMessage(topicConfig.getTopicName(), sqsSubject, sqsMessage));
+                    messagesDispatcher.route(new MercuryMessage(subscriptionConfig.getTopicName(), sqsSubject, sqsMessage));
                 } catch (Throwable t) {
                     logger.error("Can't process SQS message", t);
-                    toDLQ.add(message);
                     return;
                 }
 
                 toDelete.add(message.getReceiptHandle());
             });
-
-            if(!toDLQ.isEmpty()) {
-                //TODO: process the "toDLQ" messages list. Send them to DLQ. This option is provided by SQS.
-            }
 
             if(!toDelete.isEmpty()) {
                 List<DeleteMessageBatchRequestEntry> deleteRequestEntries = toDelete.stream()

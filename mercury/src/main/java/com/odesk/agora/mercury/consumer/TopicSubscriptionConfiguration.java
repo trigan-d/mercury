@@ -1,5 +1,6 @@
 package com.odesk.agora.mercury.consumer;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -20,6 +21,14 @@ public class TopicSubscriptionConfiguration {
     @Max(10)
     private int pollingBatchSize;
 
+    @NotNull
+    @Min(1)
+    @Max(100)
+    private int maxReceiveCount = 5;
+
+    @Valid
+    private DLQConfiguration dlq;
+
     public String getTopicName() {
         return topicName;
     }
@@ -30,5 +39,13 @@ public class TopicSubscriptionConfiguration {
 
     public int getPollingBatchSize() {
         return pollingBatchSize;
+    }
+
+    public int getMaxReceiveCount() {
+        return maxReceiveCount;
+    }
+
+    public DLQConfiguration getDLQConfig() {
+        return dlq;
     }
 }
