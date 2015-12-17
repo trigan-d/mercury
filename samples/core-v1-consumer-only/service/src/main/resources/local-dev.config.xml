@@ -112,7 +112,6 @@
             <subscription1>
                 <topicName>MercuryTestCoreV1</topicName>
                 <pollingIntervalMs>5000</pollingIntervalMs>
-                <pollingBatchSize>10</pollingBatchSize>
             </subscription1>
         </consumer>
     </mercury>

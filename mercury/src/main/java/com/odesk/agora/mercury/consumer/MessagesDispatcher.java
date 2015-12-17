@@ -2,13 +2,14 @@ package com.odesk.agora.mercury.consumer;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.util.Topics;
-import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.odesk.agora.mercury.MercuryMessage;
 import com.odesk.agora.mercury.publisher.PublisherConfiguration;
 import com.odesk.agora.mercury.publisher.TopicPublishersFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,12 +28,18 @@ public class MessagesDispatcher {
 
     private final ConcurrentHashMap<String, Consumer<MercuryMessage>> consumers = new ConcurrentHashMap<>();
 
-    public MessagesDispatcher(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig, AmazonSQSClient sqsClient, AmazonSNSClient snsClient) {
+    public MessagesDispatcher(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig, AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient) {
         listenersExecutor = Executors.newScheduledThreadPool(consumerConfig.getThreadsCorePoolSize());
 
         for (TopicSubscriptionConfiguration topicConfig : consumerConfig.getTopicSubscriptions()) {
-            String topicArn = snsClient.createTopic(publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + topicConfig.getTopicName()).getTopicArn();
-            String queueUrl = sqsClient.createQueue(consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + topicConfig.getTopicName()).getQueueUrl();
+            String topicName = publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + topicConfig.getTopicName();
+            String queueName = consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + topicConfig.getTopicName();
+
+            String topicArn = snsClient.createTopic(topicName).getTopicArn();
+
+            String queueUrl = sqsClient.createQueue(queueName).getQueueUrl();
+            sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("ReceiveMessageWaitTimeSeconds", "20")); //enable long polling
+
             String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
 
             logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", topicConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
