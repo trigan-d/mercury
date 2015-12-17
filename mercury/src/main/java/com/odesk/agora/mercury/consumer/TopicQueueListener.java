@@ -1,7 +1,9 @@
 package com.odesk.agora.mercury.consumer;
 
 import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.DeleteMessageBatchRequestEntry;
+import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
@@ -23,18 +25,18 @@ public class TopicQueueListener implements Runnable {
     private final Logger logger;
 
     private final TopicSubscriptionConfiguration topicConfig;
-    private final AmazonSQSClient sqsClient;
+    private final AmazonSQSBufferedAsyncClient sqsClient;
     private final String queueUrl;
     private final MessagesDispatcher messagesDispatcher;
     private final ReceiveMessageRequest receiveMessageRequest;
 
-    public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
+    public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSBufferedAsyncClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
         this.topicConfig = topicConfig;
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.messagesDispatcher = messagesDispatcher;
         logger = LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + topicConfig.getTopicName());
-        receiveMessageRequest = new ReceiveMessageRequest().withQueueUrl(queueUrl).withMaxNumberOfMessages(topicConfig.getPollingBatchSize());
+        receiveMessageRequest = new ReceiveMessageRequest().withQueueUrl(queueUrl).withMaxNumberOfMessages(10);
     }
 
     public void run() {
@@ -43,13 +45,14 @@ public class TopicQueueListener implements Runnable {
             return;
         }
 
+        logger.info("start fetching");
         ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
+        logger.info("end fetching");
 
         if(! pollResult.getMessages().isEmpty()) {
             logger.info("Received {} messages", pollResult.getMessages().size());
 
             final ConcurrentLinkedQueue<Message> toDLQ = new ConcurrentLinkedQueue<>();
-            final ConcurrentLinkedQueue<String> toDelete = new ConcurrentLinkedQueue<>();
 
             //TODO: should we allow to choose between parallel and non-parallel messages processing via TopicSubscriptionConfiguration?
 
@@ -77,19 +80,11 @@ public class TopicQueueListener implements Runnable {
                     return;
                 }
 
-                toDelete.add(message.getReceiptHandle());
+                sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()));
             });
 
             if(!toDLQ.isEmpty()) {
                 //TODO: process the "toDLQ" messages list. Send them to DLQ. This option is provided by SQS.
-            }
-
-            if(!toDelete.isEmpty()) {
-                List<DeleteMessageBatchRequestEntry> deleteRequestEntries = toDelete.stream()
-                        .map(receiptHandle -> new DeleteMessageBatchRequestEntry(UUID.randomUUID().toString(), receiptHandle))
-                        .collect(Collectors.toList());
-                sqsClient.deleteMessageBatch(queueUrl, deleteRequestEntries);
-                //TODO: handle messages that failed to delete.
             }
         }
     }

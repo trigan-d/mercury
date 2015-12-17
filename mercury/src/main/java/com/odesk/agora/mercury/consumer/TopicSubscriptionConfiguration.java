@@ -15,20 +15,11 @@ public class TopicSubscriptionConfiguration {
     @Min(100)
     private long pollingIntervalMs;
 
-    @NotNull
-    @Min(1)
-    @Max(10)
-    private int pollingBatchSize;
-
     public String getTopicName() {
         return topicName;
     }
 
     public long getPollingIntervalMs() {
         return pollingIntervalMs;
-    }
-
-    public int getPollingBatchSize() {
-        return pollingBatchSize;
     }
 }
