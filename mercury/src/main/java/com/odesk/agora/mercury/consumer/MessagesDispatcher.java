@@ -2,10 +2,7 @@ package com.odesk.agora.mercury.consumer;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.util.Topics;
-import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.amazonaws.services.sqs.model.CreateQueueRequest;
-import com.amazonaws.services.sqs.model.QueueNameExistsException;
 import com.odesk.agora.mercury.MercuryMessage;
 import com.odesk.agora.mercury.publisher.PublisherConfiguration;
 import com.odesk.agora.mercury.publisher.TopicPublishersFactory;

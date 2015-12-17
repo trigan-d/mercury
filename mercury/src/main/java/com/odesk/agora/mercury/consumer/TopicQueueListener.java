@@ -1,8 +1,7 @@
 package com.odesk.agora.mercury.consumer;
 
-import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.amazonaws.services.sqs.model.DeleteMessageBatchRequestEntry;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -13,10 +12,7 @@ import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
@@ -28,15 +24,30 @@ public class TopicQueueListener implements Runnable {
     private final AmazonSQSBufferedAsyncClient sqsClient;
     private final String queueUrl;
     private final MessagesDispatcher messagesDispatcher;
+
     private final ReceiveMessageRequest receiveMessageRequest;
+    private final AsyncHandler<DeleteMessageRequest, Void> deletionAsyncHandler;
 
     public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSBufferedAsyncClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
         this.topicConfig = topicConfig;
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.messagesDispatcher = messagesDispatcher;
+
         logger = LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + topicConfig.getTopicName());
+
         receiveMessageRequest = new ReceiveMessageRequest().withQueueUrl(queueUrl).withMaxNumberOfMessages(10);
+
+        deletionAsyncHandler = new AsyncHandler<DeleteMessageRequest, Void>() {
+            @Override
+            public void onError(Exception exception) {
+                logger.warn("SQS message deletion failed", exception);
+            }
+            @Override
+            public void onSuccess(DeleteMessageRequest request, Void aVoid) {
+                //do nothing, the deletion succeeded
+            }
+        };
     }
 
     public void run() {
@@ -80,7 +91,7 @@ public class TopicQueueListener implements Runnable {
                     return;
                 }
 
-                sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()));
+                sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);
             });
 
             if(!toDLQ.isEmpty()) {

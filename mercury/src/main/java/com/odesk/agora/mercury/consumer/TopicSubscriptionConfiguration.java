@@ -1,6 +1,5 @@
 package com.odesk.agora.mercury.consumer;
 
-import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
