@@ -18,11 +18,6 @@ public class TopicSubscriptionConfiguration {
 
     @NotNull
     @Min(1)
-    @Max(10)
-    private int pollingBatchSize;
-
-    @NotNull
-    @Min(1)
     @Max(100)
     private int maxReceiveCount = 5;
 
@@ -35,10 +30,6 @@ public class TopicSubscriptionConfiguration {
 
     public long getPollingIntervalMs() {
         return pollingIntervalMs;
-    }
-
-    public int getPollingBatchSize() {
-        return pollingBatchSize;
     }
 
     public int getMaxReceiveCount() {

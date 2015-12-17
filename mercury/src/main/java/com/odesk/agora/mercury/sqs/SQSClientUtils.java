@@ -3,7 +3,10 @@ package com.odesk.agora.mercury.sqs;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.internal.StaticCredentialsProvider;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
+import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import com.amazonaws.services.sqs.buffered.QueueBufferConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class SQSClientUtils {
     private static final Logger logger = LoggerFactory.getLogger(SQSClientUtils.class);
 
-    public static AmazonSQSClient buildAmazonSQSClient(SQSConfiguration configuration) {
+    public static AmazonSQSBufferedAsyncClient buildAmazonSQSClient(SQSConfiguration configuration) {
         logger.info("Creating AmazonSQSClient() with config {}", configuration);
 
         ClientConfiguration clientConfiguration = new ClientConfiguration()
@@ -26,19 +29,20 @@ public class SQSClientUtils {
         final String awsAccessKey = configuration.getAccessKey();
         final String awsSecretKey = configuration.getSecretKey();
 
-        AmazonSQSClient amazonSQSClient;
+        AmazonSQSAsyncClient sqsAsync;
 
         if (awsAccessKey == null || awsAccessKey.isEmpty() || awsSecretKey == null || awsSecretKey.isEmpty()) {
             logger.info("Using IAM Roles for AmazonSQSClient()");
-            amazonSQSClient = new AmazonSQSClient(new InstanceProfileCredentialsProvider(), clientConfiguration);
+            sqsAsync = new AmazonSQSAsyncClient(new InstanceProfileCredentialsProvider(), clientConfiguration);
         } else {
             logger.info("Using provided AWS Credentials for AmazonSQSClient()");
             BasicAWSCredentials basicAWSCredentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
-            amazonSQSClient = new AmazonSQSClient(basicAWSCredentials, clientConfiguration);
+            sqsAsync = new AmazonSQSAsyncClient(new StaticCredentialsProvider(basicAWSCredentials), clientConfiguration);
         }
         logger.info("AmazonSQSClient client endpoint: {}", configuration.getEndpoint());
-        amazonSQSClient.setEndpoint(configuration.getEndpoint());
+        sqsAsync.setEndpoint(configuration.getEndpoint());
 
-        return amazonSQSClient;
+        QueueBufferConfig queueBufferConfig = configuration.getQueueBufferConfig().withMaxDoneReceiveBatches(0); //disable messages prefetching
+        return new AmazonSQSBufferedAsyncClient(sqsAsync, queueBufferConfig);
     }
 }
