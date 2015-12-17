@@ -29,6 +29,7 @@ public class MessagesDispatcher {
     private ScheduledExecutorService listenersExecutor;
 
     private final ConcurrentHashMap<String, Consumer<MercuryMessage>> consumers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Consumer<MercuryMessage>> dlqConsumers = new ConcurrentHashMap<>();
 
     public MessagesDispatcher(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig, AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient) {
         listenersExecutor = Executors.newScheduledThreadPool(consumerConfig.getThreadsCorePoolSize());
@@ -51,15 +52,18 @@ public class MessagesDispatcher {
 
             if(subscriptionConfig.getDLQConfig().isEnabled()) {
                 String dlqName = queueName + QUEUE_NAME_DELIMITER + DLQ_NAME_POSTFIX;
-                String dlqUrl = sqsClient.createQueue(dlqName).getQueueUrl();
-                String dlqArn = sqsClient.getQueueAttributes(dlqUrl, Arrays.asList("QueueArn")).getAttributes().get("QueueArn");
 
+                String dlqUrl = sqsClient.createQueue(dlqName).getQueueUrl();
+                sqsClient.setQueueAttributes(dlqUrl, Collections.singletonMap("ReceiveMessageWaitTimeSeconds", "20")); //enable long polling for DLQ
+
+                String dlqArn = sqsClient.getQueueAttributes(dlqUrl, Arrays.asList("QueueArn")).getAttributes().get("QueueArn");
                 sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("RedrivePolicy",
                         "{\"maxReceiveCount\":\"" + subscriptionConfig.getMaxReceiveCount() + "\", \"deadLetterTargetArn\":\"" + dlqArn + "\"}"));
 
                 logger.info("DLQ {} configured for topic {}.", dlqUrl, subscriptionConfig.getTopicName());
 
-                //TODO: schedule DLQ listener and provide DLQ consumers registration
+                listenersExecutor.scheduleWithFixedDelay(new DLQListener(subscriptionConfig, sqsClient, queueUrl, this),
+                        subscriptionConfig.getDLQConfig().getPollingIntervalMs(), subscriptionConfig.getDLQConfig().getPollingIntervalMs(), TimeUnit.MILLISECONDS);
             }
         }
     }
@@ -74,16 +78,39 @@ public class MessagesDispatcher {
         logger.info("Consumer for topic {} unregistered", topicName);
     }
 
+    public void setTopicDlqConsumer(String topicName, Consumer<MercuryMessage> consumer) {
+        dlqConsumers.put(topicName, consumer);
+        logger.info("Registered a DLQ consumer for topic {}: {}", topicName, consumer);
+    }
+
+    public void removeTopicDlqConsumer(String topicName) {
+        dlqConsumers.remove(topicName);
+        logger.info("DLQ consumer for topic {} unregistered", topicName);
+    }
+
     public boolean hasConsumerForTopic(String topicName) {
         return consumers.containsKey(topicName);
     }
 
-    public void route(MercuryMessage message) {
+    public boolean hasDlqConsumerForTopic(String topicName) {
+        return dlqConsumers.containsKey(topicName);
+    }
+
+    public void dispatchMessage(MercuryMessage message) {
         Consumer<MercuryMessage> consumer = consumers.get(message.getTopicName());
         if(consumer == null) {
             throw new IllegalStateException("No consumer found for topic " + message.getTopicName());
         } else {
             consumer.accept(message);
+        }
+    }
+
+    public void dispatchDlqMessage(MercuryMessage message) {
+        Consumer<MercuryMessage> dlqConsumer = dlqConsumers.get(message.getTopicName());
+        if(dlqConsumer == null) {
+            throw new IllegalStateException("No DLQ consumer found for topic " + message.getTopicName());
+        } else {
+            dlqConsumer.accept(message);
         }
     }
 }

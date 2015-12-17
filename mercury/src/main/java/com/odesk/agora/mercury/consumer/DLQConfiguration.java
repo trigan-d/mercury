@@ -1,5 +1,6 @@
 package com.odesk.agora.mercury.consumer;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -7,9 +8,17 @@ import javax.validation.constraints.NotNull;
  */
 public class DLQConfiguration {
     @NotNull
-    private boolean enabled = true;
+    private boolean enabled = true; //Could be overridden by configuration.
+
+    @NotNull
+    @Min(100)
+    private long pollingIntervalMs = 10000; //Default polling interval for DLQ. Could be overridden by configuration.
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public long getPollingIntervalMs() {
+        return pollingIntervalMs;
     }
 }

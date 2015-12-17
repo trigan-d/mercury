@@ -11,18 +11,16 @@ import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
  */
 public class TopicQueueListener implements Runnable {
-    private final Logger logger;
+    protected final Logger logger;
 
-    private final TopicSubscriptionConfiguration subscriptionConfig;
+    protected final TopicSubscriptionConfiguration subscriptionConfig;
+    protected final MessagesDispatcher messagesDispatcher;
     private final AmazonSQSBufferedAsyncClient sqsClient;
     private final String queueUrl;
-    private final MessagesDispatcher messagesDispatcher;
 
     private final ReceiveMessageRequest receiveMessageRequest;
     private final AsyncHandler<DeleteMessageRequest, Void> deletionAsyncHandler;
@@ -33,7 +31,7 @@ public class TopicQueueListener implements Runnable {
         this.queueUrl = queueUrl;
         this.messagesDispatcher = messagesDispatcher;
 
-        logger = LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + subscriptionConfig.getTopicName());
+        logger = createLogger();
 
         receiveMessageRequest = new ReceiveMessageRequest().withQueueUrl(queueUrl).withMaxNumberOfMessages(10);
 
@@ -50,42 +48,56 @@ public class TopicQueueListener implements Runnable {
     }
 
     public void run() {
-        if(! messagesDispatcher.hasConsumerForTopic(subscriptionConfig.getTopicName())) {
+        if(checkConsumerExists()) {
+            ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
+
+            if(! pollResult.getMessages().isEmpty()) {
+                logger.debug("Received {} messages", pollResult.getMessages().size());
+
+                //TODO: should we allow to choose between parallel and non-parallel messages processing via TopicSubscriptionConfiguration?
+
+                pollResult.getMessages().parallelStream().forEach(message -> {
+                    String sqsSubject;
+                    String sqsMessage;
+
+                    try {
+                        JSONObject body = new JSONObject(message.getBody());
+                        sqsSubject = body.tryGetString("Subject");
+                        sqsMessage = body.tryGetString("Message");
+                    } catch (JSONException e) {
+                        logger.error("Can't handle SNS message due to json error", e);
+                        return;
+                    }
+
+                    logger.debug("Processing Mercury message subject={}, message={}", sqsSubject, sqsMessage);
+
+                    try {
+                        processMessage(new MercuryMessage(subscriptionConfig.getTopicName(), sqsSubject, sqsMessage));
+                    } catch (Throwable t) {
+                        logger.error("Can't process SQS message", t);
+                        return;
+                    }
+
+                    sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);
+                });
+            }
+        }
+    }
+
+    protected Logger createLogger() {
+        return LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + subscriptionConfig.getTopicName());
+    }
+
+    protected boolean checkConsumerExists() {
+        if(messagesDispatcher.hasConsumerForTopic(subscriptionConfig.getTopicName())) {
+            return true;
+        } else {
             logger.warn("No consumer registered for topic {} yet. Skipping SQS fetch.", subscriptionConfig.getTopicName());
-            return;
+            return false;
         }
+    }
 
-        ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
-
-        if(! pollResult.getMessages().isEmpty()) {
-            logger.info("Received {} messages", pollResult.getMessages().size());
-
-            //TODO: should we allow to choose between parallel and non-parallel messages processing via TopicSubscriptionConfiguration?
-
-            pollResult.getMessages().parallelStream().forEach(message -> {
-                String sqsSubject;
-                String sqsMessage;
-
-                try {
-                    JSONObject body = new JSONObject(message.getBody());
-                    sqsSubject = body.tryGetString("Subject");
-                    sqsMessage = body.tryGetString("Message");
-                } catch (JSONException e) {
-                    logger.error("Can't handle SNS message due to json error", e);
-                    return;
-                }
-
-                logger.debug("Processing Mercury message subject={}, message={}", sqsSubject, sqsMessage);
-
-                try {
-                    messagesDispatcher.route(new MercuryMessage(subscriptionConfig.getTopicName(), sqsSubject, sqsMessage));
-                } catch (Throwable t) {
-                    logger.error("Can't process SQS message", t);
-                    return;
-                }
-
-                sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);
-            });
-        }
+    protected void processMessage(MercuryMessage message) {
+        messagesDispatcher.dispatchMessage(message);
     }
 }
