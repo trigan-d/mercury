@@ -56,9 +56,7 @@ public class TopicQueueListener implements Runnable {
             return;
         }
 
-        logger.info("start fetching");
         ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
-        logger.info("end fetching");
 
         if(! pollResult.getMessages().isEmpty()) {
             logger.info("Received {} messages", pollResult.getMessages().size());
