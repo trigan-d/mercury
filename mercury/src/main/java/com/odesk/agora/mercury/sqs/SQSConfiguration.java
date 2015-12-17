@@ -1,11 +1,6 @@
 package com.odesk.agora.mercury.sqs;
 
-import com.odesk.agora.mercury.consumer.TopicSubscriptionConfiguration;
-
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import java.util.List;
+import com.amazonaws.services.sqs.buffered.QueueBufferConfig;
 
 /**
  * Created by Dmitry Solovyov on 11/23/2015.
@@ -24,4 +19,6 @@ public interface SQSConfiguration {
     String getAccessKey();
 
     String getSecretKey();
+
+    QueueBufferConfig getQueueBufferConfig();
 }

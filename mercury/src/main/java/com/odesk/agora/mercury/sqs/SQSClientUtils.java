@@ -42,7 +42,7 @@ public class SQSClientUtils {
         logger.info("AmazonSQSClient client endpoint: {}", configuration.getEndpoint());
         sqsAsync.setEndpoint(configuration.getEndpoint());
 
-        QueueBufferConfig queueBufferConfig = new QueueBufferConfig().withMaxDoneReceiveBatches(0); //disable messages prefetching
+        QueueBufferConfig queueBufferConfig = configuration.getQueueBufferConfig().withMaxDoneReceiveBatches(0); //disable messages prefetching
         return new AmazonSQSBufferedAsyncClient(sqsAsync, queueBufferConfig);
     }
 }

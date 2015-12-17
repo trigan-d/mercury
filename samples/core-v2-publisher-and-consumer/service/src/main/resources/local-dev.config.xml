@@ -135,6 +135,9 @@
         <sqs>
             <accessKey>AKIAIAAMCDPU4KQEFU5Q</accessKey>
             <secretKey>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</secretKey>
+            <queueBufferConfig>
+                <maxBatchSize>6</maxBatchSize>
+            </queueBufferConfig>
         </sqs>
         <publisher>
             <topicsForPublishing>MercuryTestCoreV2</topicsForPublishing>
