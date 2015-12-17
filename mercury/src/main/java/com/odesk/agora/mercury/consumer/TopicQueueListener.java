@@ -3,7 +3,6 @@ package com.odesk.agora.mercury.consumer;
 import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.util.json.JSONException;
@@ -60,8 +59,6 @@ public class TopicQueueListener implements Runnable {
 
         if(! pollResult.getMessages().isEmpty()) {
             logger.info("Received {} messages", pollResult.getMessages().size());
-
-            final ConcurrentLinkedQueue<String> toDelete = new ConcurrentLinkedQueue<>();
 
             //TODO: should we allow to choose between parallel and non-parallel messages processing via TopicSubscriptionConfiguration?
 
