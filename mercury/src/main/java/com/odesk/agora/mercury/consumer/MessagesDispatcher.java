@@ -41,7 +41,7 @@ public class MessagesDispatcher {
             String topicArn = snsClient.createTopic(topicName).getTopicArn();
 
             String queueUrl = sqsClient.createQueue(queueName).getQueueUrl();
-            sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("ReceiveMessageWaitTimeSeconds", "20")); //enable long polling
+            sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("ReceiveMessageWaitTimeSeconds", String.valueOf(consumerConfig.getPollingWaitTimeSec())));
 
             String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
 
@@ -54,7 +54,7 @@ public class MessagesDispatcher {
                 String dlqName = queueName + QUEUE_NAME_DELIMITER + DLQ_NAME_POSTFIX;
 
                 String dlqUrl = sqsClient.createQueue(dlqName).getQueueUrl();
-                sqsClient.setQueueAttributes(dlqUrl, Collections.singletonMap("ReceiveMessageWaitTimeSeconds", "20")); //enable long polling for DLQ
+                sqsClient.setQueueAttributes(dlqUrl, Collections.singletonMap("ReceiveMessageWaitTimeSeconds", String.valueOf(consumerConfig.getPollingWaitTimeSec())));
 
                 String dlqArn = sqsClient.getQueueAttributes(dlqUrl, Arrays.asList("QueueArn")).getAttributes().get("QueueArn");
                 sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("RedrivePolicy",
