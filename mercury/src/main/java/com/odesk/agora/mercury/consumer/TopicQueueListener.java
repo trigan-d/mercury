@@ -3,7 +3,6 @@ package com.odesk.agora.mercury.consumer;
 import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.util.json.JSONException;
@@ -12,29 +11,27 @@ import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
  */
 public class TopicQueueListener implements Runnable {
-    private final Logger logger;
+    protected final Logger logger;
 
-    private final TopicSubscriptionConfiguration topicConfig;
+    protected final TopicSubscriptionConfiguration subscriptionConfig;
+    protected final MessagesDispatcher messagesDispatcher;
     private final AmazonSQSBufferedAsyncClient sqsClient;
     private final String queueUrl;
-    private final MessagesDispatcher messagesDispatcher;
 
     private final ReceiveMessageRequest receiveMessageRequest;
     private final AsyncHandler<DeleteMessageRequest, Void> deletionAsyncHandler;
 
-    public TopicQueueListener(TopicSubscriptionConfiguration topicConfig, AmazonSQSBufferedAsyncClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
-        this.topicConfig = topicConfig;
+    public TopicQueueListener(TopicSubscriptionConfiguration subscriptionConfig, AmazonSQSBufferedAsyncClient sqsClient, String queueUrl, MessagesDispatcher messagesDispatcher) {
+        this.subscriptionConfig = subscriptionConfig;
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.messagesDispatcher = messagesDispatcher;
 
-        logger = LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + topicConfig.getTopicName());
+        logger = createLogger();
 
         receiveMessageRequest = new ReceiveMessageRequest().withQueueUrl(queueUrl).withMaxNumberOfMessages(10);
 
@@ -51,50 +48,56 @@ public class TopicQueueListener implements Runnable {
     }
 
     public void run() {
-        if(! messagesDispatcher.hasConsumerForTopic(topicConfig.getTopicName())) {
-            logger.warn("No consumer registered for topic {} yet. Skipping SQS fetch.", topicConfig.getTopicName());
-            return;
-        }
+        if(checkConsumerExists()) {
+            ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
 
-        ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
+            if(! pollResult.getMessages().isEmpty()) {
+                logger.debug("Received {} messages", pollResult.getMessages().size());
 
-        if(! pollResult.getMessages().isEmpty()) {
-            logger.info("Received {} messages", pollResult.getMessages().size());
+                //TODO: should we allow to choose between parallel and non-parallel messages processing via TopicSubscriptionConfiguration?
 
-            final ConcurrentLinkedQueue<Message> toDLQ = new ConcurrentLinkedQueue<>();
+                pollResult.getMessages().parallelStream().forEach(message -> {
+                    String sqsSubject;
+                    String sqsMessage;
 
-            //TODO: should we allow to choose between parallel and non-parallel messages processing via TopicSubscriptionConfiguration?
+                    try {
+                        JSONObject body = new JSONObject(message.getBody());
+                        sqsSubject = body.tryGetString("Subject");
+                        sqsMessage = body.tryGetString("Message");
+                    } catch (JSONException e) {
+                        logger.error("Can't handle SNS message due to json error", e);
+                        return;
+                    }
 
-            pollResult.getMessages().parallelStream().forEach(message -> {
-                String sqsSubject;
-                String sqsMessage;
+                    logger.debug("Processing Mercury message subject={}, message={}", sqsSubject, sqsMessage);
 
-                try {
-                    JSONObject body = new JSONObject(message.getBody());
-                    sqsSubject = body.tryGetString("Subject");
-                    sqsMessage = body.tryGetString("Message");
-                } catch (JSONException e) {
-                    logger.error("Can't handle SNS message due to json error", e);
-                    toDLQ.add(message);
-                    return;
-                }
+                    try {
+                        processMessage(new MercuryMessage(subscriptionConfig.getTopicName(), sqsSubject, sqsMessage));
+                    } catch (Throwable t) {
+                        logger.error("Can't process SQS message", t);
+                        return;
+                    }
 
-                logger.debug("Processing Mercury message subject={}, message={}", sqsSubject, sqsMessage);
-
-                try {
-                    messagesDispatcher.route(new MercuryMessage(topicConfig.getTopicName(), sqsSubject, sqsMessage));
-                } catch (Throwable t) {
-                    logger.error("Can't process SQS message", t);
-                    toDLQ.add(message);
-                    return;
-                }
-
-                sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);
-            });
-
-            if(!toDLQ.isEmpty()) {
-                //TODO: process the "toDLQ" messages list. Send them to DLQ. This option is provided by SQS.
+                    sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);
+                });
             }
         }
+    }
+
+    protected Logger createLogger() {
+        return LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + subscriptionConfig.getTopicName());
+    }
+
+    protected boolean checkConsumerExists() {
+        if(messagesDispatcher.hasConsumerForTopic(subscriptionConfig.getTopicName())) {
+            return true;
+        } else {
+            logger.warn("No consumer registered for topic {} yet. Skipping SQS fetch.", subscriptionConfig.getTopicName());
+            return false;
+        }
+    }
+
+    protected void processMessage(MercuryMessage message) {
+        messagesDispatcher.dispatchMessage(message);
     }
 }

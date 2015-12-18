@@ -28,5 +28,8 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
 
         //Here we show just one of possible ways to register a topic consumer. Compare with core-v1 sample.
         getGuiceInjector().getInstance(MessagesDispatcher.class).setTopicConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {}", message));
+
+        //getGuiceInjector().getInstance(MessagesDispatcher.class).setTopicConsumer("MercuryTestCoreV2", message -> { throw new RuntimeException("Message processing failed"); });
+        //getGuiceInjector().getInstance(MessagesDispatcher.class).setTopicDlqConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {} from DLQ", message));
     }
 }
