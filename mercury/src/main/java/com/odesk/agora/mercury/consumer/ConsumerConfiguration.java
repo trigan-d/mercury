@@ -20,10 +20,6 @@ public class ConsumerConfiguration {
     @NotNull
     private String queueNamesPrefix;
 
-    @Min(0)
-    @Max(20)
-    private int pollingWaitTimeSec = 20; //Enable long polling by default. Set to zero if you want short polling instead.
-
     private TopicSubscriptionConfiguration subscription1;
     private TopicSubscriptionConfiguration subscription2;
     private TopicSubscriptionConfiguration subscription3;
@@ -65,9 +61,5 @@ public class ConsumerConfiguration {
 
     public void setQueueNamesPrefix(String queueNamesPrefix) {
         this.queueNamesPrefix = queueNamesPrefix;
-    }
-
-    public int getPollingWaitTimeSec() {
-        return pollingWaitTimeSec;
     }
 }

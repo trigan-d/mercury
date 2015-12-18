@@ -41,7 +41,7 @@ public class MessagesDispatcher {
             String topicArn = snsClient.createTopic(topicName).getTopicArn();
 
             String queueUrl = sqsClient.createQueue(queueName).getQueueUrl();
-            sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("ReceiveMessageWaitTimeSeconds", String.valueOf(consumerConfig.getPollingWaitTimeSec())));
+            sqsClient.setQueueAttributes(queueUrl, subscriptionConfig.asSQSQueueAttributes());
 
             String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
 
@@ -50,11 +50,12 @@ public class MessagesDispatcher {
             listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig, sqsClient, queueUrl, this),
                     subscriptionConfig.getPollingIntervalMs(), subscriptionConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
 
-            if(subscriptionConfig.getDLQConfig().isEnabled()) {
+            DLQConfiguration dlqConfig = subscriptionConfig.getDLQConfig();
+            if(dlqConfig.isEnabled()) {
                 String dlqName = queueName + QUEUE_NAME_DELIMITER + DLQ_NAME_POSTFIX;
 
                 String dlqUrl = sqsClient.createQueue(dlqName).getQueueUrl();
-                sqsClient.setQueueAttributes(dlqUrl, Collections.singletonMap("ReceiveMessageWaitTimeSeconds", String.valueOf(consumerConfig.getPollingWaitTimeSec())));
+                sqsClient.setQueueAttributes(dlqUrl, dlqConfig.asSQSQueueAttributes());
 
                 String dlqArn = sqsClient.getQueueAttributes(dlqUrl, Arrays.asList("QueueArn")).getAttributes().get("QueueArn");
                 sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("RedrivePolicy",
@@ -62,8 +63,8 @@ public class MessagesDispatcher {
 
                 logger.info("DLQ {} configured for topic {}.", dlqUrl, subscriptionConfig.getTopicName());
 
-                listenersExecutor.scheduleWithFixedDelay(new DLQListener(subscriptionConfig, sqsClient, queueUrl, this),
-                        subscriptionConfig.getDLQConfig().getPollingIntervalMs(), subscriptionConfig.getDLQConfig().getPollingIntervalMs(), TimeUnit.MILLISECONDS);
+                listenersExecutor.scheduleWithFixedDelay(new DLQListener(subscriptionConfig, sqsClient, dlqUrl, this),
+                        dlqConfig.getPollingIntervalMs(), dlqConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
             }
         }
     }
