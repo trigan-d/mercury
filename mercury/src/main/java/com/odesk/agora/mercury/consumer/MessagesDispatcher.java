@@ -12,9 +12,12 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -26,13 +29,30 @@ public class MessagesDispatcher {
     public static final String QUEUE_NAME_DELIMITER = "-";
     public static final String DLQ_NAME_POSTFIX = "DLQ";
 
+    private final ConsumerConfiguration consumerConfig;
+    private final PublisherConfiguration publisherConfig;
+    private final AmazonSQSBufferedAsyncClient sqsClient;
+    private final AmazonSNSClient snsClient;
+
     private ScheduledExecutorService listenersExecutor;
+    private Executor consumptionExecutor;
 
     private final ConcurrentHashMap<String, Consumer<MercuryMessage>> consumers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Consumer<MercuryMessage>> dlqConsumers = new ConcurrentHashMap<>();
 
     public MessagesDispatcher(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig, AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient) {
-        listenersExecutor = Executors.newScheduledThreadPool(consumerConfig.getThreadsCorePoolSize());
+        this(consumerConfig, publisherConfig, sqsClient, snsClient, Executors.newCachedThreadPool());
+    }
+
+    public MessagesDispatcher(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig, AmazonSQSBufferedAsyncClient sqsClient,
+                              AmazonSNSClient snsClient, Executor consumptionExecutor) {
+        this.consumerConfig = consumerConfig;
+        this.publisherConfig = publisherConfig;
+        this.sqsClient = sqsClient;
+        this.snsClient = snsClient;
+        this.consumptionExecutor = consumptionExecutor;
+
+        listenersExecutor = Executors.newScheduledThreadPool(calculateListenersNumber(), new ListenersThreadFactory());
 
         for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
             String topicName = publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + subscriptionConfig.getTopicName();
@@ -67,6 +87,18 @@ public class MessagesDispatcher {
                         dlqConfig.getPollingIntervalMs(), dlqConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
             }
         }
+    }
+
+    private int calculateListenersNumber() {
+        int listeners = 0;
+        for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
+            listeners += subscriptionConfig.getDLQConfig().isEnabled() ? 2 : 1;
+        }
+        return listeners;
+    }
+
+    public void consumeAsync(ConsumptionRunnable consumption) {
+        consumptionExecutor.execute(consumption);
     }
 
     public void setTopicConsumer(String topicName, Consumer<MercuryMessage> consumer) {
@@ -112,6 +144,18 @@ public class MessagesDispatcher {
             throw new IllegalStateException("No DLQ consumer found for topic " + message.getTopicName());
         } else {
             dlqConsumer.accept(message);
+        }
+    }
+
+
+    private static class ListenersThreadFactory implements ThreadFactory {
+        static AtomicInteger threadCount = new AtomicInteger( 0 );
+        public Thread newThread( Runnable r) {
+            int threadNumber = threadCount.addAndGet(1);
+            Thread thread = new Thread( r );
+            thread.setDaemon(true);
+            thread.setName("MercuryTopicListenerThread-" + threadNumber );
+            return thread;
         }
     }
 }

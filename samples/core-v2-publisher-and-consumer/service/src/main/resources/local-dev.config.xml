@@ -147,6 +147,16 @@
         </consumer>
     </mercury>
 
+
+    <!-- that's how we could configure hystrix threadpools for messages consumption -->
+    <hystrix>
+        <threadpool>
+            <corev2pubcons_MercuryConsumer_MercuryTestCoreV2>
+                <coreSize>3</coreSize>
+            </corev2pubcons_MercuryConsumer_MercuryTestCoreV2>
+        </threadpool>
+    </hystrix>
+
     <flags>
         <anonymousAccess>
             <enabled>true</enabled>

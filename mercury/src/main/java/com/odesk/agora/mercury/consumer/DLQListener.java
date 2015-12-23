@@ -15,21 +15,21 @@ public class DLQListener extends TopicQueueListener {
 
     @Override
     protected Logger createLogger() {
-        return LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + subscriptionConfig.getTopicName() + "-DLQ");
+        return LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + getTopicName() + "-DLQ");
     }
 
     @Override
     protected boolean checkConsumerExists() {
-        if(messagesDispatcher.hasDlqConsumerForTopic(subscriptionConfig.getTopicName())) {
+        if(messagesDispatcher.hasDlqConsumerForTopic(getTopicName())) {
             return true;
         } else {
-            logger.info("No DLQ consumer registered for topic {} yet. Skipping SQS DLQ fetch.", subscriptionConfig.getTopicName());
+            getLogger().info("No DLQ consumer registered for topic {} yet. Skipping SQS DLQ fetch.", getTopicName());
             return false;
         }
     }
 
     @Override
-    protected void processMessage(MercuryMessage message) {
-        messagesDispatcher.dispatchDlqMessage(message);
+    protected void processParsedMessage(String sqsSubject, String sqsMessage) {
+        messagesDispatcher.dispatchDlqMessage(new MercuryMessage(getTopicName(), sqsSubject, sqsMessage));
     }
 }
