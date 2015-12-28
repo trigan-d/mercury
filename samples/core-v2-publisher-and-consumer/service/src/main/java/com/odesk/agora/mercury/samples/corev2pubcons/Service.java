@@ -3,7 +3,7 @@ package com.odesk.agora.mercury.samples.corev2pubcons;
 import com.odesk.agora.AgoraApplication;
 import com.odesk.agora.configuration.Configuration;
 import com.odesk.agora.guice.GuiceModule;
-import com.odesk.agora.mercury.consumer.MessagesDispatcher;
+import com.odesk.agora.mercury.consumer.MercuryConsumersRegistry;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +27,9 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
         super.run(configuration, environment);
 
         //Here we show just one of possible ways to register a topic consumer. Compare with core-v1 sample.
-        getGuiceInjector().getInstance(MessagesDispatcher.class).setTopicConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {}", message));
+        MercuryConsumersRegistry.setTopicConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {}", message));
 
-        //getGuiceInjector().getInstance(MessagesDispatcher.class).setTopicConsumer("MercuryTestCoreV2", message -> { throw new RuntimeException("Message processing failed"); });
-        //getGuiceInjector().getInstance(MessagesDispatcher.class).setTopicDlqConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {} from DLQ", message));
+        //MercuryConsumersRegistry.setTopicConsumer("MercuryTestCoreV2", message -> { throw new RuntimeException("Message processing failed"); });
+        //MercuryConsumersRegistry.setTopicDlqConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {} from DLQ", message));
     }
 }
