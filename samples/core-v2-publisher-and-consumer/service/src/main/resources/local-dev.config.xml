@@ -108,20 +108,6 @@
         </configurationService>
     </archaius>
 
-    <hystrix>
-        <command>
-            <default>
-                <execution>
-                    <isolation>
-                        <thread>
-                            <timeoutInMilliseconds>50000</timeoutInMilliseconds>
-                        </thread>
-                    </isolation>
-                </execution>
-            </default>
-        </command>
-    </hystrix>
-
     <security>
         <enabled>false</enabled>
     </security>
@@ -148,9 +134,33 @@
     </mercury>
 
 
-    <!-- that's how we could configure hystrix threadpool for messages consumption -->
     <hystrix>
+        <command>
+            <!-- that's how we could configure hystrix command for messages publishing -->
+            <corev2pubcons_SNS_Publish>
+                <execution>
+                    <isolation>
+                        <thread>
+                            <timeoutInMilliseconds>2000</timeoutInMilliseconds>
+                        </thread>
+                    </isolation>
+                </execution>
+            </corev2pubcons_SNS_Publish>
+            <!-- that's how we could configure hystrix command for messages receiving -->
+            <!--
+            <corev2pubcons_SQS_Receive>
+                <execution>
+                    <isolation>
+                        <thread>
+                            <timeoutInMilliseconds>666</timeoutInMilliseconds>
+                        </thread>
+                    </isolation>
+                </execution>
+            </corev2pubcons_SQS_Receive>
+            -->
+        </command>
         <threadpool>
+            <!-- that's how we could configure hystrix threadpool for messages consumption -->
             <corev2pubcons_MercuryConsumer>
                 <coreSize>3</coreSize>
             </corev2pubcons_MercuryConsumer>

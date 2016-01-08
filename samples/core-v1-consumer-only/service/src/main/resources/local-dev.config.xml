@@ -81,20 +81,6 @@
         </configurationService>
     </archaius>
 
-    <hystrix>
-        <command>
-            <default>
-                <execution>
-                    <isolation>
-                        <thread>
-                            <timeoutInMilliseconds>50000</timeoutInMilliseconds>
-                        </thread>
-                    </isolation>
-                </execution>
-            </default>
-        </command>
-    </hystrix>
-
     <security>
         <enabled>false</enabled>
     </security>
