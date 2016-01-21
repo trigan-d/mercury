@@ -8,6 +8,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
+import com.amazonaws.util.json.Jackson;
 import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ public class TopicQueueListener implements Runnable {
     }
 
     public void run() {
-        if(MercuryConsumersRegistry.getConsumerForTopic(topicName, isDLQ) == null) {
+        if(MercuryConsumers.getConsumerForTopic(topicName, isDLQ) == null) {
             logger.warn("No consumer registered for {} yet. Skip SQS fetching.", topicNameForLogging);
         } else {
             ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
@@ -88,32 +89,20 @@ public class TopicQueueListener implements Runnable {
 
         @Override
         public void run() {
-            Consumer<MercuryMessage> consumer = MercuryConsumersRegistry.getConsumerForTopic(topicName, isDLQ);
+            Consumer<MercuryMessage> consumer = MercuryConsumers.getConsumerForTopic(topicName, isDLQ);
 
             if(consumer == null) {
                 logger.error("No consumer found for {}. Skip message processing.", topicNameForLogging);
                 return;
             }
 
-            String sqsSubject;
-            String sqsMessage;
+            logger.debug("Processing message {}", message.getBody());
 
             try {
-                JSONObject body = new JSONObject(message.getBody());
-                sqsSubject = body.tryGetString("Subject");
-                sqsMessage = body.tryGetString("Message");
-            } catch (JSONException e) {
-                logger.error("Can't handle SNS message due to json error", e);
-                return;
-            }
-
-            logger.debug("Processing Mercury message subject={}, message={}", sqsSubject, sqsMessage);
-
-            try {
-                consumer.accept(new MercuryMessage(topicName, sqsSubject, sqsMessage));
+                consumer.accept(Jackson.fromJsonString(message.getBody(), MercuryMessage.class));
             } catch (Throwable t) {
                 logger.error("Can't process SQS message", t);
-                return;
+             //   return;
             }
 
             sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);

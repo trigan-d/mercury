@@ -3,6 +3,7 @@ package com.odesk.agora.mercury.samples.corev2pubcons;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.odesk.agora.mercury.publisher.TopicPublisher;
+import com.odesk.agora.thrift.hello.THello;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -18,8 +19,15 @@ public class Resource extends com.odesk.agora.Resource {
 
     @GET
     @Path("/publish")
-    public void publishMessage(@QueryParam("message") String message, @QueryParam("subject") String subject) {
-        topicPublisher.publish(message, subject);
-        //for(int i=0;i<9;i++) { topicPublisher.publish(message + i, subject); }
+    public void publishMessage(@QueryParam("message") String message) {
+        //plain text
+        //topicPublisher.messageWithTextPayload(message).publish();
+
+        //json and thrift
+        topicPublisher.messageWithJsonPayload(new THello("id1", "Hi " + message + " 1", "created_now")).publish();
+        topicPublisher.messageWithThriftPayload(new THello("id2", "Hi " + message + "2", "created_later")).publish();
+
+
+        //for(int i=0;i<9;i++) { topicPublisher.messageWithTextPayload(message + i).publish(); }
     }
 }

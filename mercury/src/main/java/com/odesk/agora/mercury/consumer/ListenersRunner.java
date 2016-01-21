@@ -46,6 +46,7 @@ public class ListenersRunner {
             sqsClient.setQueueAttributes(queueUrl, subscriptionConfig.asSQSQueueAttributes());
 
             String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
+            snsClient.setSubscriptionAttributes(subscriptionArn, "RawMessageDelivery", "true");
 
             logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subscriptionConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
 

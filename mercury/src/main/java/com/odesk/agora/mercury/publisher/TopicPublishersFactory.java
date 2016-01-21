@@ -16,19 +16,21 @@ public class TopicPublishersFactory {
 
     private final PublisherConfiguration publisherConfig;
     private final AmazonSNSClient snsClient;
+    private final String senderAppId;
 
     private ConcurrentHashMap<String, TopicPublisher> topicPublishers = new ConcurrentHashMap<>();
 
-    public TopicPublishersFactory(PublisherConfiguration publisherConfig, AmazonSNSClient snsClient) {
+    public TopicPublishersFactory(PublisherConfiguration publisherConfig, AmazonSNSClient snsClient, String senderAppId) {
         this.publisherConfig = publisherConfig;
         this.snsClient = snsClient;
+        this.senderAppId = senderAppId;
     }
 
     public TopicPublisher getPublisherForTopic(String topicName) {
         return topicPublishers.computeIfAbsent(publisherConfig.getTopicNamesPrefix() + TOPIC_NAME_DELIMITER + topicName, prefixedName -> {
             String topicArn = snsClient.createTopic(prefixedName).getTopicArn();
             logger.info("SNS topic {} prepared for publishing. TopicArn is {}", topicName, topicArn);
-            return new TopicPublisher(snsClient, topicName, topicArn);
+            return new TopicPublisher(snsClient, topicName, topicArn, senderAppId);
         });
     }
 }

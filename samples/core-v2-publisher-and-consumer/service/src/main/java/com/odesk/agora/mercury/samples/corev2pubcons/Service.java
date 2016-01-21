@@ -3,7 +3,9 @@ package com.odesk.agora.mercury.samples.corev2pubcons;
 import com.odesk.agora.AgoraApplication;
 import com.odesk.agora.configuration.Configuration;
 import com.odesk.agora.guice.GuiceModule;
-import com.odesk.agora.mercury.consumer.MercuryConsumersRegistry;
+import com.odesk.agora.mercury.consumer.MercuryConsumers;
+import com.odesk.agora.mercury.consumer.TypedMessage;
+import com.odesk.agora.thrift.hello.THello;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +29,20 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
         super.run(configuration, environment);
 
         //Here we show just one of possible ways to register a topic consumer. Compare with core-v1 sample.
-        MercuryConsumersRegistry.setTopicConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {}", message));
 
-        //MercuryConsumersRegistry.setTopicConsumer("MercuryTestCoreV2", message -> { throw new RuntimeException("Message processing failed"); });
-        //MercuryConsumersRegistry.setTopicDlqConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {} from DLQ", message));
+        //plain text
+        //MercuryConsumers.setConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {}", message.getSerializedPayload()));
+
+        //json and thrift
+        MercuryConsumers.setTypedConsumer("MercuryTestCoreV2", THello.class, this::logHelloMessage);
+
+
+        //MercuryConsumers.setConsumer("MercuryTestCoreV2", message -> { throw new RuntimeException("Message processing failed"); });
+        //MercuryConsumers.setDlqConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {} from DLQ", message));
+    }
+
+    private void logHelloMessage(TypedMessage<THello> message) {
+        THello tHello = message.getPayload();
+        logger.info("Received Mercury THello message: '{}'. The original {} payload was {}", tHello.getValue(), message.getContentType(), message.getSerializedPayload());
     }
 }
