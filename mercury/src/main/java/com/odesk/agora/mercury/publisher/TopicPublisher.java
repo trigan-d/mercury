@@ -70,12 +70,12 @@ public class TopicPublisher {
             return this;
         }
 
-        public MessageToPublish withMetadata(Map<String, String> metadata) {
+        public MessageToPublish addMetadata(Map<String, String> metadata) {
             setMetadata(metadata);
             return this;
         }
 
-        public MessageToPublish withMetadata(String key, String value) {
+        public MessageToPublish addMetadata(String key, String value) {
             if(getMetadata() == null) {
                 setMetadata(new HashMap<>());
             }

@@ -24,8 +24,8 @@ public class Resource extends com.odesk.agora.Resource {
         //topicPublisher.messageWithTextPayload(message).publish();
 
         //json and thrift
-        topicPublisher.messageWithJsonPayload(new THello("id1", "Hi " + message + " 1", "created_now")).withMetadata("number", "one").publish();
-        topicPublisher.messageWithThriftPayload(new THello("id2", "Hi " + message + " 2", "created_later")).withMetadata("number", "two").publish();
+        topicPublisher.messageWithJsonPayload(new THello("id1", "Hi " + message + " 1", "created_now")).addMetadata("number", "one").publish();
+        topicPublisher.messageWithThriftPayload(new THello("id2", "Hi " + message + " 2", "created_later")).addMetadata("number", "two").publish();
 
 
         //for(int i=0;i<9;i++) { topicPublisher.messageWithTextPayload(message + i).publish(); }
