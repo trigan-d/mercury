@@ -102,7 +102,7 @@ public class TopicQueueListener implements Runnable {
                 consumer.accept(Jackson.fromJsonString(message.getBody(), MercuryMessage.class));
             } catch (Throwable t) {
                 logger.error("Can't process SQS message", t);
-             //   return;
+                return;
             }
 
             sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);

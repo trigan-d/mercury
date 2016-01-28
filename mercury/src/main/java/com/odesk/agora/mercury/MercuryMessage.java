@@ -1,6 +1,7 @@
 package com.odesk.agora.mercury;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by Dmitry Solovyov on 11/30/2015.
@@ -18,6 +19,8 @@ public class MercuryMessage {
     private String topicName;
     private String senderAppId;
     private Date timestamp;
+
+    private Map<String, String> metadata;
 
     public String getSerializedPayload() {
         return serializedPayload;
@@ -65,5 +68,17 @@ public class MercuryMessage {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getMetadata(String key) {
+        return metadata == null ? null : metadata.get(key);
     }
 }

@@ -28,12 +28,13 @@ public class ListenersRunner {
 
     private ScheduledExecutorService listenersExecutor;
 
-    public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig, AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient) {
+    public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
+                           AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient) {
         this(consumerConfig, publisherConfig, sqsClient, snsClient, Executors.newCachedThreadPool());
     }
 
-    public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig, AmazonSQSBufferedAsyncClient sqsClient,
-                           AmazonSNSClient snsClient, Executor consumptionExecutor) {
+    public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
+                           AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient, Executor consumptionExecutor) {
         listenersExecutor = Executors.newScheduledThreadPool(calculateListenersNumber(consumerConfig), new ListenersThreadFactory());
 
         for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {

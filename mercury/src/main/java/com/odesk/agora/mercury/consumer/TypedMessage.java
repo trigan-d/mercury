@@ -15,6 +15,7 @@ public class TypedMessage<T> extends MercuryMessage {
         setTimestamp(original.getTimestamp());
         setSenderAppId(original.getSenderAppId());
         setTopicName(original.getTopicName());
+        setMetadata(original.getMetadata());
 
         this.payload = payload;
     }

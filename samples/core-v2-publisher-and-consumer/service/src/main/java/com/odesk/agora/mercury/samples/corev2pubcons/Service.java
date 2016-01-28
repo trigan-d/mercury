@@ -43,6 +43,7 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
 
     private void logHelloMessage(TypedMessage<THello> message) {
         THello tHello = message.getPayload();
-        logger.info("Received Mercury THello message: '{}'. The original {} payload was {}", tHello.getValue(), message.getContentType(), message.getSerializedPayload());
+        logger.info("Received Mercury THello message: '{}'. The original {} payload was {}. Metadata.number={}",
+                tHello.getValue(), message.getContentType(), message.getSerializedPayload(), message.getMetadata("number"));
     }
 }

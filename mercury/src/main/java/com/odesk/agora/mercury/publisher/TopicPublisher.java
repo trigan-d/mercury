@@ -2,12 +2,16 @@ package com.odesk.agora.mercury.publisher;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.util.StringUtils;
 import com.amazonaws.util.json.Jackson;
 import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Created by Dmitry Solovyov on 11/23/2015.
@@ -19,12 +23,14 @@ public class TopicPublisher {
     private final String topicName;
     private final String topicArn;
     private final String senderAppId;
+    private Supplier<String> messageIdSupplier;
 
-    public TopicPublisher(AmazonSNSClient snsClient, String topicName, String topicArn, String senderAppId) {
+    public TopicPublisher(AmazonSNSClient snsClient, String topicName, String topicArn, String senderAppId, Supplier<String> messageIdSupplier) {
         this.snsClient = snsClient;
         this.topicName = topicName;
         this.topicArn = topicArn;
         this.senderAppId = senderAppId;
+        this.messageIdSupplier = messageIdSupplier;
 
         logger = LoggerFactory.getLogger(TopicPublisher.class + "-" + topicName);
     }
@@ -64,7 +70,23 @@ public class TopicPublisher {
             return this;
         }
 
+        public MessageToPublish withMetadata(Map<String, String> metadata) {
+            setMetadata(metadata);
+            return this;
+        }
+
+        public MessageToPublish withMetadata(String key, String value) {
+            if(getMetadata() == null) {
+                setMetadata(new HashMap<>());
+            }
+            getMetadata().put(key,value);
+            return this;
+        }
+
         public String publish() {
+            if(StringUtils.isNullOrEmpty(getMessageId())) {
+                setMessageId(messageIdSupplier.get());
+            }
             setTimestamp(new Date());
             PublishRequest request = new PublishRequest(topicArn, Jackson.toJsonString(this));
             logger.debug("Sending publishRequest: {}", request);
