@@ -138,7 +138,7 @@ public class TopicPublisher {
             }
             setTimestamp(new Date());
             PublishRequest request = new PublishRequest(topicArn, Jackson.toJsonString(this));
-            logger.debug("Sending publishRequest: {}", request);
+            logger.debug("Publishing message {}", this);
             return snsClient.publish(request).getMessageId();
         }
     }

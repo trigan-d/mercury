@@ -126,4 +126,25 @@ public class MercuryMessage {
     public String getMetadata(String key) {
         return metadata == null ? null : metadata.get(key);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+
+        sb.append("topicName=" + topicName + ", ");
+        sb.append("senderAppId=" + senderAppId + ", ");
+        sb.append("messageId=" + messageId + ", ");
+        sb.append("timestamp=" + timestamp + ", ");
+        sb.append("contentType=" + contentType + ", ");
+        sb.append("payloadSize=" + serializedPayload.length());
+
+        if(! (metadata == null || metadata.isEmpty()))
+        {
+            sb.append(", metadata: " + metadata);
+        }
+
+        sb.append("}");
+        return sb.toString();
+    }
 }
