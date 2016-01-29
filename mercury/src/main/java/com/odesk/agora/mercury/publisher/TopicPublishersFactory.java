@@ -47,7 +47,7 @@ public class TopicPublishersFactory {
     }
 
     /**
-     * Obtain a {@link TopicPublisher} for Mercury topic specified by topicName. The publishers are thread-safe, so this method always returns the same instance per topicName.
+     * Obtain a {@link TopicPublisher} for Mercury topic given by topicName. The publishers are thread-safe, so this method always returns the same instance per topicName.
      * Automatically creates SNS topic if it doesn't exist yet.
      */
     public TopicPublisher getPublisherForTopic(String topicName) {

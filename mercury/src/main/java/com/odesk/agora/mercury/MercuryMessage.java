@@ -30,7 +30,7 @@ public class MercuryMessage {
     private String contentType;
 
     /**
-     * The payload being serialized with to the specified content-type
+     * The payload being serialized with to the given content-type
      */
     private String serializedPayload;
 

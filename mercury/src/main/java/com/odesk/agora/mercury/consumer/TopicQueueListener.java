@@ -18,6 +18,12 @@ import java.util.function.Consumer;
 
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
+ * <p>
+ * Listener (or poller) for SQS queue. Instances are created and managed by {@link ListenersRunner}.
+ * Each message received is passed to the topic consumer registered at {@link MercuryConsumers}.
+ * Don't poll messages from the queue until a proper consumer is registered.
+ * <p>
+ * Not intended to be used by end-users.
  */
 public class TopicQueueListener implements Runnable {
     private final Logger logger;

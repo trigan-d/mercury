@@ -16,8 +16,12 @@ import java.util.function.Supplier;
 /**
  * Created by Dmitry Solovyov on 11/23/2015.
  * <p>
- * Publisher for specific Mercury topic. The instances should be obtained via {@link TopicPublishersFactory#getPublisherForTopic(String)}
+ * Publisher for specific Mercury topic. The instances should be obtained via {@link TopicPublishersFactory#getPublisherForTopic(String)}.
+ * Additionally, Agora core provides an ability to inject the publishers with {@code  @Inject @Named("YourTopicName") TopicPublisher topicPublisher;}.
+ * <p>
  * The publisher is thread-safe, so one should use the same instance to construct and publish the messages from different threads simultaneously.
+ * <p>
+ * It is the main public API point (facade) at publisher side.
  */
 public class TopicPublisher {
     private final Logger logger;
@@ -39,7 +43,7 @@ public class TopicPublisher {
     }
 
     /**
-     * Construct a message with pre-serialized payload of specified contentType
+     * Construct a message with pre-serialized payload of given contentType
      */
     public MessageToPublish messageWithSerializedPayload(String serializedPayload, String contentType) {
         return new MessageToPublish(serializedPayload, contentType);
@@ -47,16 +51,16 @@ public class TopicPublisher {
 
     /**
      * Construct a message with plain text payload
-     * Shorthand for messageWithSerializedPayload(value, "text/plain").
+     * Shorthand for {@code messageWithSerializedPayload(value, "text/plain")}.
      */
     public MessageToPublish messageWithTextPayload(String value) {
         return messageWithSerializedPayload(value, MercuryMessage.CONTENT_TYPE_PLAIN);
     }
 
     /**
-     * Construct a message with object payload to be automatically serialized to the specified contentType.
+     * Construct a message with object payload to be automatically serialized to the given contentType.
      * A proper serializer should be registered in {@link MercurySerializers}. Default thrift and json serializers are registered automatically.
-     * @throws IllegalStateException when the proper serializer could not be found.
+     * @throws IllegalStateException if a proper serializer could not be found.
      */
     public <T> MessageToPublish messageWithObjectPayload(T value, String contentType) {
         return messageWithSerializedPayload(MercurySerializers.serialize(value, contentType), contentType);
@@ -66,7 +70,7 @@ public class TopicPublisher {
      * Construct a message with Thrift-based payload to be automatically serialized to "application/x-thrift+json" contentType.
      * Default thrift serializer for TBase is registered in {@link MercurySerializers} automatically by Agora core.
      * User can register a custom thrift serializer for T class to override the default one.
-     * Shorthand for messageWithObjectPayload(value, "application/x-thrift+json").
+     * Shorthand for {@code messageWithObjectPayload(value, "application/x-thrift+json")}.
      */
     public <T> MessageToPublish messageWithThriftPayload(T value) {
         return messageWithObjectPayload(value, MercuryMessage.CONTENT_TYPE_THRIFT_JSON);
@@ -76,7 +80,7 @@ public class TopicPublisher {
      * Construct a message with object payload to be automatically serialized to "application/json" contentType.
      * Default json serializer is registered in {@link MercurySerializers} automatically at startup.
      * User can register a custom json serializer for T class to override the default one.
-     * Shorthand for messageWithObjectPayload(value, "application/json").
+     * Shorthand for {@code messageWithObjectPayload(value, "application/json")}.
      */
     public <T> MessageToPublish messageWithJsonPayload(T value) {
         return messageWithObjectPayload(value, MercuryMessage.CONTENT_TYPE_JSON);

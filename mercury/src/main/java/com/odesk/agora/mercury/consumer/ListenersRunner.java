@@ -19,6 +19,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
+ * <p>
+ * The factory and scheduler for all topic listeners. Designed to be a singleton. Agora core instantiates it with Mercury Guice module and makes it injectable.
+ * Automatically creates SQS queues and subscribes them to SNS topics if they don't exist yet.
+ * <p>
+ * Not intended to be used by end-users.
  */
 public class ListenersRunner {
     private static final Logger logger = LoggerFactory.getLogger(ListenersRunner.class);

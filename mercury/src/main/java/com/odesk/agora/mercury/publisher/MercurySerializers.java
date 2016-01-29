@@ -13,11 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * A registry of serializers to be used for message payload serialization.
  * <p>
  * Each serializer is registered with two parameters: a content-type and a java class (or interface).
- * It means that this serializer would be used to serialize a payload of specified class (and descendants) to specified content-type.
+ * It means that this serializer would be used to serialize a payload of a specified class (and descendants) to a specified content-type.
  * One can register another serializer for some subclass. Then all instances of this subclass (and its descendants) would be serialized with the new serializer instead of the "parent" one.
  * <p>
  * Default "application/json" serializer for Object.class is registered automatically at startup.
  * Default "application/x-thrift+json" serializer for TBase.class is registered automatically at startup by Agora core.
+ * Register a new serializer here if you want to publish the messages of some other content-type.
  */
 public class MercurySerializers {
     @FunctionalInterface
@@ -42,19 +43,23 @@ public class MercurySerializers {
     }
 
     /**
-     * Shorthand for setSerializer(clazz, "application/json", serializer)
+     * Shorthand for {@code setSerializer(clazz, "application/json", serializer)}
      */
     public static <T> void setJsonSerializer(Class<T> clazz, Serializer<T> serializer) {
         setSerializer(clazz, MercuryMessage.CONTENT_TYPE_JSON, serializer);
     }
 
     /**
-     * Shorthand for setSerializer(clazz, "application/x-thrift+son", serializer)
+     * Shorthand for {@code setSerializer(clazz, "application/x-thrift+json", serializer)}
      */
     public static <T> void setThriftSerializer(Class<T> clazz, Serializer<T> serializer) {
         setSerializer(clazz, MercuryMessage.CONTENT_TYPE_THRIFT_JSON, serializer);
     }
 
+    /**
+     * Serialize the given payload object to the given content-type.
+     * @throws IllegalStateException if a proper serializer could not be found in the registry.
+     */
     public static <T> String serialize(T value, String contentType) {
         Serializer<T> serializer = null;
         ConcurrentHashMap<Class, Serializer> serializersByClass = serializersByContentType.get(contentType);
