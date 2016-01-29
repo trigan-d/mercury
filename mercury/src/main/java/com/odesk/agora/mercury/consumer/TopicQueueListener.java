@@ -96,10 +96,10 @@ public class TopicQueueListener implements Runnable {
                 return;
             }
 
-            logger.debug("Processing message {}", message.getBody());
-
             try {
-                consumer.accept(Jackson.fromJsonString(message.getBody(), MercuryMessage.class));
+                MercuryMessage mercuryMessage = Jackson.fromJsonString(message.getBody(), MercuryMessage.class);
+                logger.debug("Processing message {}", mercuryMessage);
+                consumer.accept(mercuryMessage);
             } catch (Throwable t) {
                 logger.error("Can't process SQS message", t);
                 return;
