@@ -10,9 +10,15 @@ import java.util.stream.Collectors;
  * Created by Dmitry Solovyov on 12/07/2015.
  */
 public class PublisherConfiguration {
+    /**
+     * Prefix for SNS topic names. Agora core sets this property automatically to the name of current environment: dev/staging/staging2/prod.
+     */
     @NotNull
     private String topicNamesPrefix;
 
+    /**
+     * Comma-separated list of topic names. The application has to list here all Mercury topics it's going to publish to.
+     */
     private String topicsForPublishing;
 
     public Set<String> getPublisherTopics() {

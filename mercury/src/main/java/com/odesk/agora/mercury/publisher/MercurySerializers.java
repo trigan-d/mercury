@@ -9,6 +9,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Dmitry Solovyov on 01/18/2016.
+ *
+ * A registry of serializers to be used for message payload serialization.
+ *
+ * Each serializer is registered with two parameters: a content-type and a java class (or interface).
+ * It means that this serializer would be used to serialize a payload of specified class (and descendants) to specified content-type.
+ * One can register another serializer for some subclass. Then all instances of this subclass (and its descendants) would be serialized with the new serializer instead of the "parent" one.
+ *
+ * Default "application/json" serializer for Object.class is registered automatically at startup.
+ * Default "application/x-thrift+json" serializer for TBase.class is registered automatically at startup by Agora core.
  */
 public class MercurySerializers {
     @FunctionalInterface
@@ -24,15 +33,24 @@ public class MercurySerializers {
         setJsonSerializer(Object.class, Jackson::toJsonString);
     }
 
+    /**
+     * Register a serializer for the specified class and content-type.
+     */
     public static <T> void setSerializer(Class<T> clazz, String contentType, Serializer<T> serializer) {
         serializersByContentType.computeIfAbsent(contentType, (ct) -> new ConcurrentHashMap<>()).put(clazz, serializer);
         logger.info("Registered a serializer for class {} and contentType {}: {}", clazz, contentType, serializer);
     }
 
+    /**
+     * Shorthand for setSerializer(clazz, "application/json", serializer)
+     */
     public static <T> void setJsonSerializer(Class<T> clazz, Serializer<T> serializer) {
         setSerializer(clazz, MercuryMessage.CONTENT_TYPE_JSON, serializer);
     }
 
+    /**
+     * Shorthand for setSerializer(clazz, "application/x-thrift+son", serializer)
+     */
     public static <T> void setThriftSerializer(Class<T> clazz, Serializer<T> serializer) {
         setSerializer(clazz, MercuryMessage.CONTENT_TYPE_THRIFT_JSON, serializer);
     }
