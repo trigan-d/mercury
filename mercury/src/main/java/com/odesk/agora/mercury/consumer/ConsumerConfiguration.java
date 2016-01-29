@@ -1,7 +1,5 @@
 package com.odesk.agora.mercury.consumer;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,11 +12,6 @@ import java.util.stream.Collectors;
  * Configuration for Mercury consumer module
  */
 public class ConsumerConfiguration {
-    @NotNull
-    @Min(1)
-    @Max(10)
-    private int threadsCorePoolSize;
-
     /**
      * Prefix for SQS queue names. Agora core sets this property automatically to "[environment name]-[consumer service name]"
      */
@@ -50,9 +43,6 @@ public class ConsumerConfiguration {
     private TopicSubscriptionConfiguration subscription20;
     //etc...
 
-    public int getThreadsCorePoolSize() {
-        return threadsCorePoolSize;
-    }
 
     public String getQueueNamesPrefix() {
         return queueNamesPrefix;
