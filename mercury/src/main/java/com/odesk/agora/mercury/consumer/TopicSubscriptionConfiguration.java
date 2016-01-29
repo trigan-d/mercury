@@ -7,24 +7,41 @@ import javax.validation.constraints.NotNull;
 
 /**
  * Created by Dmitry Solovyov on 11/25/2015.
+ * <p>
+ * Configuration for SQS queues subscribed to Mercury SNS topics.
  */
 public class TopicSubscriptionConfiguration extends QueueConfiguration {
-    public static final long DEFAULT_POLLING_INTEVAL_MS = 5000;
+    public static final long DEFAULT_POLLING_INTERVAL_MS = 5000;
     public static final int DEFAULT_VISIBILITY_TIMEOUT_SEC = 30;
     public static final int DEFAULT_POLLING_WAIT_TIME_SEC = 20; //Enable long polling by default. Set to zero if you want short polling instead.
     public static final int DEFAULT_DELAY_SEC = 0;
 
     public TopicSubscriptionConfiguration() {
-        super(DEFAULT_POLLING_INTEVAL_MS, DEFAULT_VISIBILITY_TIMEOUT_SEC, DEFAULT_POLLING_WAIT_TIME_SEC, DEFAULT_DELAY_SEC);
+        super(DEFAULT_POLLING_INTERVAL_MS, DEFAULT_VISIBILITY_TIMEOUT_SEC, DEFAULT_POLLING_WAIT_TIME_SEC, DEFAULT_DELAY_SEC);
     }
+
+    /**
+     * The name of Mercury topic to subscribe.
+     */
     @NotNull
     private String topicName;
 
+    /**
+     * The max number of attempts to process the message.
+     * Each Mercury message gets automatically deleted from the SQS queue after successful processing.
+     * If the processing fails then the message stays in the queue and would be polled and processed again.
+     * After the specified number of failed attempts the message gets completely removed from the queue, or sent to the DLQ if it is enabled.
+     * @see TopicSubscriptionConfiguration#dlq
+     */
     @NotNull
     @Min(1)
     @Max(100)
     private int maxReceiveCount = 5;
 
+    /**
+     * Dead letter queue configuration for this topic subscription.
+     * @see <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/SQSDeadLetterQueue.html">SQS documentation for dead letter queues</a>
+     */
     @Valid
     private DLQConfiguration dlq;
 

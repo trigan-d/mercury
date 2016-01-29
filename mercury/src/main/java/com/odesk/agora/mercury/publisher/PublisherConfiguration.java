@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 /**
  * Created by Dmitry Solovyov on 12/07/2015.
+ * <p>
+ * Configuration for Mercury publisher module
  */
 public class PublisherConfiguration {
     /**
@@ -21,6 +23,9 @@ public class PublisherConfiguration {
      */
     private String topicsForPublishing;
 
+    /**
+     * @return topic names as {@link Set}
+     */
     public Set<String> getPublisherTopics() {
         return (topicsForPublishing == null || topicsForPublishing.isEmpty()) ?
                 Collections.emptySet() :

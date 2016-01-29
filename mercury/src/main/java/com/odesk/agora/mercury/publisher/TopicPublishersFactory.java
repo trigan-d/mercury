@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 /**
  * Created by Dmitry Solovyov on 12/08/2015.
- *
+ * <p>
  * The factory for all topic publishers. Designed to be a singleton. Agora core instantiates it with Mercury Guice module and makes it injectable.
  */
 public class TopicPublishersFactory {
@@ -26,8 +26,8 @@ public class TopicPublishersFactory {
     private ConcurrentHashMap<String, TopicPublisher> topicPublishers = new ConcurrentHashMap<>();
 
     /**
-     * @see TopicPublishersFactory#TopicPublishersFactory(PublisherConfiguration, AmazonSNSClient, String, Supplier)
      * The default messageIdSupplier would just generate a random UUID string.
+     * @see #TopicPublishersFactory(PublisherConfiguration, AmazonSNSClient, String, Supplier) the basic constructor
      */
     public TopicPublishersFactory(PublisherConfiguration publisherConfig, AmazonSNSClient snsClient, String senderAppId) {
         this(publisherConfig, snsClient, senderAppId, () -> UUID.randomUUID().toString());
@@ -48,6 +48,7 @@ public class TopicPublishersFactory {
 
     /**
      * Obtain a {@link TopicPublisher} for Mercury topic specified by topicName. The publishers are thread-safe, so this method always returns the same instance per topicName.
+     * Automatically creates SNS topic if it doesn't exist yet.
      */
     public TopicPublisher getPublisherForTopic(String topicName) {
         return topicPublishers.computeIfAbsent(publisherConfig.getTopicNamesPrefix() + TOPIC_NAME_DELIMITER + topicName, prefixedName -> {

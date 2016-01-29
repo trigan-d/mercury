@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * Created by Dmitry Solovyov on 11/30/2015.
- *
+ * <p>
  * DTO envelope class for Mercury messages.
  * Should not be instantiated directly. At consumer side it is automatically read from SQS message.
  * At publisher side one should use one of "messageWith..." methods from {@link TopicPublisher}
@@ -22,7 +22,7 @@ public class MercuryMessage {
 
     /**
      * The content-type of the serialized payload. Mercury ecosystem supports the following types out of the box: "text/plain", "application/json", "application/x-thrift+json".
-     *
+     * <p>
      * One could easily define and use any additional content-type.
      * It requires a registration of proper serializers at publisher side with {@link MercurySerializers#setSerializer(Class, String, MercurySerializers.Serializer)},
      * and proper deserializer at consumer side with {@link MercuryDeserializers#setDeserializer(String, MercuryDeserializers.DeserializerForContentType)}
