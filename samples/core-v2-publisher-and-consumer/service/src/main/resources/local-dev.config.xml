@@ -172,4 +172,8 @@
             <enabled>true</enabled>
         </anonymousAccess>
     </flags>
+
+    <atlas>
+        <enabled>false</enabled>
+    </atlas>
 </root>
