@@ -4,6 +4,7 @@ import com.odesk.agora.AgoraApplication;
 import com.odesk.agora.configuration.Configuration;
 import com.odesk.agora.guice.GuiceModule;
 import com.odesk.agora.mercury.consumer.MercuryConsumers;
+import com.odesk.agora.mercury.consumer.PlainSQSConsumers;
 import com.odesk.agora.mercury.consumer.TypedMessage;
 import com.odesk.agora.thrift.hello.THello;
 import io.dropwizard.setup.Environment;
@@ -36,9 +37,12 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
         //json and thrift
         MercuryConsumers.setTypedConsumer("MercuryTestCoreV2", THello.class, this::logHelloMessage);
 
-
+        //DLQ example
         //MercuryConsumers.setConsumer("MercuryTestCoreV2", message -> { throw new RuntimeException("Message processing failed"); });
         //MercuryConsumers.setDlqConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {} from DLQ", message));
+
+        //plain SQS consumer example
+        //PlainSQSConsumers.setConsumer("MercuryTestCoreV2", (message) -> logger.info("Received plain SQS message {}", message));
     }
 
     private void logHelloMessage(TypedMessage<THello> message) {

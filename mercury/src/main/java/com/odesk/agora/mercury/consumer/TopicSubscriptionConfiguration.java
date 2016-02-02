@@ -45,6 +45,9 @@ public class TopicSubscriptionConfiguration extends QueueConfiguration {
     @Valid
     private DLQConfiguration dlq;
 
+    @NotNull
+    private boolean createSNSTopic = true;
+
     public String getTopicName() {
         return topicName;
     }
@@ -55,5 +58,9 @@ public class TopicSubscriptionConfiguration extends QueueConfiguration {
 
     public DLQConfiguration getDLQConfig() {
         return dlq;
+    }
+
+    public boolean isCreateSNSTopic() {
+        return createSNSTopic;
     }
 }
