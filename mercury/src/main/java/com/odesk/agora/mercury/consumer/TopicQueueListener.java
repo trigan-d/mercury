@@ -6,8 +6,6 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
 import com.amazonaws.util.json.Jackson;
 import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
@@ -95,20 +93,32 @@ public class TopicQueueListener implements Runnable {
 
         @Override
         public void run() {
-            Consumer<MercuryMessage> consumer = MercuryConsumers.getConsumerForTopic(topicName, isDLQ);
+            Consumer<Message> plainSQSConsumer = PlainSQSConsumers.getConsumerForTopic(topicName, isDLQ);
 
-            if(consumer == null) {
-                logger.error("No consumer found for {}. Skip message processing.", topicNameForLogging);
-                return;
-            }
+            if(plainSQSConsumer != null) {
+                try {
+                    logger.debug("Processing plain SQS message {}", message);
+                    plainSQSConsumer.accept(message);
+                } catch (Throwable t) {
+                    logger.error("Can't process plain SQS message", t);
+                    return;
+                }
+            } else {
+                Consumer<MercuryMessage> consumer = MercuryConsumers.getConsumerForTopic(topicName, isDLQ);
 
-            try {
-                MercuryMessage mercuryMessage = Jackson.fromJsonString(message.getBody(), MercuryMessage.class);
-                logger.debug("Processing message {}", mercuryMessage);
-                consumer.accept(mercuryMessage);
-            } catch (Throwable t) {
-                logger.error("Can't process SQS message", t);
-                return;
+                if(consumer == null) {
+                    logger.error("No consumer found for {}. Skip message processing.", topicNameForLogging);
+                    return;
+                }
+
+                try {
+                    MercuryMessage mercuryMessage = Jackson.fromJsonString(message.getBody(), MercuryMessage.class);
+                    logger.debug("Processing message {}", mercuryMessage);
+                    consumer.accept(mercuryMessage);
+                } catch (Throwable t) {
+                    logger.error("Can't process Mercury message", t);
+                    return;
+                }
             }
 
             sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);

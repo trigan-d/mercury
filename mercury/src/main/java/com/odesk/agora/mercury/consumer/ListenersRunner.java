@@ -46,15 +46,17 @@ public class ListenersRunner {
             String topicName = publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + subscriptionConfig.getTopicName();
             String queueName = consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + subscriptionConfig.getTopicName();
 
-            String topicArn = snsClient.createTopic(topicName).getTopicArn();
-
             String queueUrl = sqsClient.createQueue(queueName).getQueueUrl();
             sqsClient.setQueueAttributes(queueUrl, subscriptionConfig.asSQSQueueAttributes());
 
-            String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
-            snsClient.setSubscriptionAttributes(subscriptionArn, "RawMessageDelivery", "true");
-
-            logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subscriptionConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
+            if (subscriptionConfig.isCreateSNSTopic()) {
+                String topicArn = snsClient.createTopic(topicName).getTopicArn();
+                String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
+                snsClient.setSubscriptionAttributes(subscriptionArn, "RawMessageDelivery", "true");
+                logger.info("Mercury topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subscriptionConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
+            } else {
+                logger.info("SQS queue {} prepared for consuming. QueueUrl={}", subscriptionConfig.getTopicName(), queueUrl);
+            }
 
             listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), queueUrl, false, sqsClient, consumptionExecutor),
                     subscriptionConfig.getPollingIntervalMs(), subscriptionConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
