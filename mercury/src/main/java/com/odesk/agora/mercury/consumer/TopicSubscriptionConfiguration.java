@@ -45,6 +45,15 @@ public class TopicSubscriptionConfiguration extends QueueConfiguration {
     @Valid
     private DLQConfiguration dlq;
 
+    /**
+     * Should the consumer create the SNS topic and SNS-SQS subscription automatically.
+     * If set to false then the consumer creates only the SQS queue.
+     * <p>
+     * Default is true. It is the standard setup for Mercury communication.
+     * <p>
+     * You should change it only when you want to consume the messages from some SQS queue that is populated not by Mercury.
+     * Also consider using {@link PlainSQSConsumers} in that case to process non-Mercury SQS messages.
+     */
     @NotNull
     private boolean createSNSTopic = true;
 
