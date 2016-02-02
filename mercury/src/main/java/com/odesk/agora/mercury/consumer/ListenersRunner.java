@@ -19,6 +19,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
+ * <p>
+ * The factory and scheduler for all topic listeners. Designed to be a singleton. Agora core instantiates it with Mercury Guice module and makes it injectable.
+ * Automatically creates SQS queues and subscribes them to SNS topics if they don't exist yet.
+ * <p>
+ * Not intended to be used by end-users.
  */
 public class ListenersRunner {
     private static final Logger logger = LoggerFactory.getLogger(ListenersRunner.class);
@@ -41,15 +46,17 @@ public class ListenersRunner {
             String topicName = publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + subscriptionConfig.getTopicName();
             String queueName = consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + subscriptionConfig.getTopicName();
 
-            String topicArn = snsClient.createTopic(topicName).getTopicArn();
-
             String queueUrl = sqsClient.createQueue(queueName).getQueueUrl();
             sqsClient.setQueueAttributes(queueUrl, subscriptionConfig.asSQSQueueAttributes());
 
-            String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
-            snsClient.setSubscriptionAttributes(subscriptionArn, "RawMessageDelivery", "true");
-
-            logger.info("SNS topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subscriptionConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
+            if (subscriptionConfig.isCreateSNSTopic()) {
+                String topicArn = snsClient.createTopic(topicName).getTopicArn();
+                String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
+                snsClient.setSubscriptionAttributes(subscriptionArn, "RawMessageDelivery", "true");
+                logger.info("Mercury topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subscriptionConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
+            } else {
+                logger.info("SQS queue {} prepared for consuming. QueueUrl={}", subscriptionConfig.getTopicName(), queueUrl);
+            }
 
             listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), queueUrl, false, sqsClient, consumptionExecutor),
                     subscriptionConfig.getPollingIntervalMs(), subscriptionConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
