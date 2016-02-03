@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.odesk.agora.mercury.samples</groupId>
     <artifactId>corev1pub-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <parent>
         <groupId>com.odesk.agora.mercury.samples</groupId>
         <artifactId>corev1pub</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
