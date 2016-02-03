@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.odesk.agora.mercury</groupId>
+    <artifactId>monitor-service</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <deploymentContext>loca-dev</deploymentContext>
+        <bambooBuildVersion />
+        <shade.main.class>com.odesk.agora.mercury.com.odesk.agora.mercury.monitor.MonitorService</shade.main.class>
+    </properties>
+
+    <parent>
+        <groupId>com.odesk.agora.mercury</groupId>
+        <artifactId>monitor</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml </relativePath>
+    </parent>
+
+    <build>
+        <finalName>monitor</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <inherited>true</inherited>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <inherited>true</inherited>
+                <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <inherited>true</inherited>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
