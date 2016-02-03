@@ -6,8 +6,7 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import com.amazonaws.util.json.JSONException;
-import com.amazonaws.util.json.JSONObject;
+import com.amazonaws.util.json.Jackson;
 import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,12 @@ import java.util.function.Consumer;
 
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
+ * <p>
+ * Listener (or poller) for SQS queue. Instances are created and managed by {@link ListenersRunner}.
+ * Each message received is passed to the topic consumer registered at {@link MercuryConsumers}.
+ * Don't poll messages from the queue until a proper consumer is registered.
+ * <p>
+ * Not intended to be used by end-users.
  */
 public class TopicQueueListener implements Runnable {
     private final Logger logger;
@@ -59,7 +64,7 @@ public class TopicQueueListener implements Runnable {
     }
 
     public void run() {
-        if(MercuryConsumersRegistry.getConsumerForTopic(topicName, isDLQ) == null) {
+        if(MercuryConsumers.getConsumerForTopic(topicName, isDLQ) == null) {
             logger.warn("No consumer registered for {} yet. Skip SQS fetching.", topicNameForLogging);
         } else {
             ReceiveMessageResult pollResult = sqsClient.receiveMessage(receiveMessageRequest);
@@ -88,32 +93,32 @@ public class TopicQueueListener implements Runnable {
 
         @Override
         public void run() {
-            Consumer<MercuryMessage> consumer = MercuryConsumersRegistry.getConsumerForTopic(topicName, isDLQ);
+            Consumer<Message> plainSQSConsumer = PlainSQSConsumers.getConsumerForTopic(topicName, isDLQ);
 
-            if(consumer == null) {
-                logger.error("No consumer found for {}. Skip message processing.", topicNameForLogging);
-                return;
-            }
+            if(plainSQSConsumer != null) {
+                try {
+                    logger.debug("Processing plain SQS message {}", message);
+                    plainSQSConsumer.accept(message);
+                } catch (Throwable t) {
+                    logger.error("Can't process plain SQS message", t);
+                    return;
+                }
+            } else {
+                Consumer<MercuryMessage> consumer = MercuryConsumers.getConsumerForTopic(topicName, isDLQ);
 
-            String sqsSubject;
-            String sqsMessage;
+                if(consumer == null) {
+                    logger.error("No consumer found for {}. Skip message processing.", topicNameForLogging);
+                    return;
+                }
 
-            try {
-                JSONObject body = new JSONObject(message.getBody());
-                sqsSubject = body.tryGetString("Subject");
-                sqsMessage = body.tryGetString("Message");
-            } catch (JSONException e) {
-                logger.error("Can't handle SNS message due to json error", e);
-                return;
-            }
-
-            logger.debug("Processing Mercury message subject={}, message={}", sqsSubject, sqsMessage);
-
-            try {
-                consumer.accept(new MercuryMessage(topicName, sqsSubject, sqsMessage));
-            } catch (Throwable t) {
-                logger.error("Can't process SQS message", t);
-                return;
+                try {
+                    MercuryMessage mercuryMessage = Jackson.fromJsonString(message.getBody(), MercuryMessage.class);
+                    logger.debug("Processing message {}", mercuryMessage);
+                    consumer.accept(mercuryMessage);
+                } catch (Throwable t) {
+                    logger.error("Can't process Mercury message", t);
+                    return;
+                }
             }
 
             sqsClient.deleteMessageAsync(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()), deletionAsyncHandler);

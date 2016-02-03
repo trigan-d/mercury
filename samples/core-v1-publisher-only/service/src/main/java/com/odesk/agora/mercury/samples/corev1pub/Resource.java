@@ -18,7 +18,7 @@ public class Resource extends com.odesk.agora.Resource {
 
     @GET
     @Path("/publish")
-    public void publishMessage(@QueryParam("message") String message, @QueryParam("subject") String subject) {
-        topicPublisher.publish(message, subject);
+    public void publishMessage(@QueryParam("message") String message) {
+        topicPublisher.messageWithTextPayload(message).publish();
     }
 }

@@ -81,14 +81,14 @@ public class SQSClientBuilder {
             public ReceiveMessageResult receiveMessage(ReceiveMessageRequest receiveMessageRequest) {
                 return receiveWrapper == null ?
                         super.receiveMessage(receiveMessageRequest) :
-                        receiveWrapper.apply(super::receiveMessage, receiveMessageRequest);
+                        receiveWrapper.wrap(super::receiveMessage, receiveMessageRequest);
             }
 
             @Override
             public DeleteMessageBatchResult deleteMessageBatch(DeleteMessageBatchRequest deleteMessageBatchRequest) {
                 return deleteBatchWrapper == null ?
                         super.deleteMessageBatch(deleteMessageBatchRequest) :
-                        deleteBatchWrapper.apply(super::deleteMessageBatch, deleteMessageBatchRequest);
+                        deleteBatchWrapper.wrap(super::deleteMessageBatch, deleteMessageBatchRequest);
             }
 
             @Override
@@ -96,7 +96,7 @@ public class SQSClientBuilder {
                 if(deleteWrapper == null) {
                     super.deleteMessage(deleteMessageRequest);
                 } else {
-                    deleteWrapper.apply((request) -> {
+                    deleteWrapper.wrap((request) -> {
                         super.deleteMessage(request);
                         return null;
                     }, deleteMessageRequest);

@@ -61,7 +61,7 @@ public class SNSClientBuilder {
             public PublishResult publish(PublishRequest publishRequest) {
                 return publishWrapper == null ?
                         super.publish(publishRequest) :
-                        publishWrapper.apply(super::publish, publishRequest);
+                        publishWrapper.wrap(super::publish, publishRequest);
             }
         };
 
