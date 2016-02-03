@@ -8,7 +8,7 @@
                      Because Java cannot drop privileges in a POSIX system, these
                      ports cannot be in the range 1-1024. A port value of 0 will
                      make the OS use an arbitrary unused port. -->
-                <port>8638</port>
+                <port>8750</port>
                 <!-- Enables SO_LINGER on the server socket with the specified
                      linger time. By default, uses the system default. -->
                 <soLingerTime>10s</soLingerTime>
@@ -22,7 +22,7 @@
                      requests. Subject to the same limitations as "port". If this is
                      set to the same value as port, the admin routes will be mounted
                      under /admin. -->
-                <port>8639</port>
+                <port>8751</port>
                 <!-- Enables SO_LINGER on the server socket with the specified
                      linger time. By default, uses the system default. -->
                 <soLingerTime>10s</soLingerTime>
@@ -64,5 +64,8 @@
             </subscription1>
         </consumer>
     </mercury>
+
+    <publicationIntervalMillis>5000</publicationIntervalMillis>
+    <messageFailedLatencyMillis>30000</messageFailedLatencyMillis>
 
 </root>

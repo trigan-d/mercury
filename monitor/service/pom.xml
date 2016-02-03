@@ -9,7 +9,7 @@
     <properties>
         <deploymentContext>loca-dev</deploymentContext>
         <bambooBuildVersion />
-        <shade.main.class>com.odesk.agora.mercury.com.odesk.agora.mercury.monitor.MonitorService</shade.main.class>
+        <shade.main.class>com.odesk.agora.mercury.com.odesk.agora.mercury.monitor.Service</shade.main.class>
     </properties>
 
     <parent>

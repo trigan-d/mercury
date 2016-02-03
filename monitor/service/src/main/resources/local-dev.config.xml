@@ -37,10 +37,14 @@
 
     <graphite>
         <enabled>false</enabled>
+        <host>graphite.odesk.com</host>
+        <port>2003</port>
     </graphite>
 
     <zipkin>
         <enabled>false</enabled>
+        <host>host</host>
+        <port>1</port>
     </zipkin>
 
     <archaius>

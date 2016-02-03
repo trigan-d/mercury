@@ -1,11 +1,8 @@
 package com.odesk.agora.mercury.monitor;
 
 import com.odesk.agora.AgoraApplication;
-import com.odesk.agora.configuration.Configuration;
 import com.odesk.agora.guice.GuiceModule;
 import com.odesk.agora.mercury.consumer.MercuryConsumers;
-import com.odesk.agora.mercury.consumer.TypedMessage;
-import com.odesk.agora.thrift.hello.THello;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,15 +10,15 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by Dmitry Solovyov on 03/02/2016.
  */
-public class MonitorService extends AgoraApplication<Configuration, GuiceModule> {
-    private static final Logger logger = LoggerFactory.getLogger(MonitorService.class);
+public class Service extends AgoraApplication<Configuration, GuiceModule> {
+    private static final Logger logger = LoggerFactory.getLogger(Service.class);
 
-    protected MonitorService() {
-        super("merury-monitor", Configuration.class, null, new GuiceModule(), Resource.class);
+    protected Service() {
+        super("mercury-monitor", Configuration.class, null, new GuiceModule());
     }
 
     public static void main(String[] args) throws Exception {
-        new MonitorService().run(args);
+        new Service().run(args);
     }
 
     @Override
@@ -29,5 +26,6 @@ public class MonitorService extends AgoraApplication<Configuration, GuiceModule>
         super.run(configuration, environment);
 
         environment.lifecycle().manage(getGuiceInjector().getInstance(MonitorMessagesProducer.class));
+        environment.lifecycle().manage(getGuiceInjector().getInstance(MonitorMessagesConsumer.class));
     }
 }
