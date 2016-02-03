@@ -2,7 +2,6 @@ package com.odesk.agora.mercury.monitor;
 
 import com.odesk.agora.AgoraApplication;
 import com.odesk.agora.guice.GuiceModule;
-import com.odesk.agora.mercury.consumer.MercuryConsumers;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
     public void run(Configuration configuration, Environment environment) throws Exception {
         super.run(configuration, environment);
 
-        environment.lifecycle().manage(getGuiceInjector().getInstance(MonitorMessagesProducer.class));
-        environment.lifecycle().manage(getGuiceInjector().getInstance(MonitorMessagesConsumer.class));
+        environment.lifecycle().manage(getGuiceInjector().getInstance(ScheduledLatencyInspector.class));
     }
 }

@@ -65,7 +65,7 @@
         </consumer>
     </mercury>
 
-    <publicationIntervalMillis>5000</publicationIntervalMillis>
+    <publicationIntervalMillis>4000</publicationIntervalMillis>
     <messageFailedLatencyMillis>30000</messageFailedLatencyMillis>
 
 </root>
