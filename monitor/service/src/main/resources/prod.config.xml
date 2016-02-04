@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <logging>
+        <level></level>
+        <!--Values will provided by console on deployment.-->
+    </logging>
+    <requestLogging>
+        <!--Values will provided by console on deployment.-->
+    </requestLogging>
+    <eureka>
+        <environment>prod</environment>
+    </eureka>
+</root>
