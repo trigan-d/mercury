@@ -15,13 +15,21 @@ public class Configuration extends com.odesk.agora.configuration.Configuration{
 
     @Min(1000)
     @NotNull
-    private long messageFailedLatencyMillis;
+    private long highLatencyThresholdMillis;
 
-    public long getMessageFailedLatencyMillis() {
-        return messageFailedLatencyMillis;
+    @Min(10000)
+    @NotNull
+    private long failedDeliveryLatencyMillis;
+
+    public long getHighLatencyThresholdMillis() {
+        return highLatencyThresholdMillis;
     }
 
     public long getPublicationIntervalMillis() {
         return publicationIntervalMillis;
+    }
+
+    public long getFailedDeliveryLatencyMillis() {
+        return failedDeliveryLatencyMillis;
     }
 }

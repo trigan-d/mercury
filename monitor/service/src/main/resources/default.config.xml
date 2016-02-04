@@ -42,6 +42,21 @@
         <!-- keep it here like this, shall be replaced on resource filtering step with, in **/service/pom.xml filtering shall be included  -->
         <version>${project.version}</version>
         <repoUrl>http://stash.odesk.com/projects/AGORA/repos/agora-mercury/browse</repoUrl>
+
+        <statusServiceMetrics>
+            <warning>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>15000</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.highLatencyMessagesRate.15MinuteRate>0.1</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.highLatencyMessagesRate.15MinuteRate>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedDeliveryRate.15MinuteRate>0.02</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedDeliveryRate.15MinuteRate>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedPublicationRate.15MinuteRate>0.02</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedPublicationRate.15MinuteRate>
+            </warning>
+            <error>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>60000</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.highLatencyMessagesRate.15MinuteRate>0.3</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.highLatencyMessagesRate.15MinuteRate>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedDeliveryRate.15MinuteRate>0.05</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedDeliveryRate.15MinuteRate>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedPublicationRate.15MinuteRate>0.05</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedPublicationRate.15MinuteRate>
+            </error>
+        </statusServiceMetrics>
     </metadata>
     <eureka>
         <name>mercury-monitor</name>
@@ -66,6 +81,10 @@
     </mercury>
 
     <publicationIntervalMillis>4000</publicationIntervalMillis>
-    <messageFailedLatencyMillis>30000</messageFailedLatencyMillis>
+    <highLatencyThresholdMillis>20000</highLatencyThresholdMillis>
+    <failedDeliveryLatencyMillis>120000</failedDeliveryLatencyMillis>
 
+    <atlas>
+        <enabled>false</enabled>
+    </atlas>
 </root>
