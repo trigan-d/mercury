@@ -25,11 +25,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class ScheduledLatencyInspector implements Managed {
     private static final Logger logger = LoggerFactory.getLogger(ScheduledLatencyInspector.class);
+    private static final String TOPIC_NAME = "MercuryMonitor";
 
     @Inject
     private Configuration configuration;
 
-    @Inject @Named("MercuryMonitor")
+    @Inject @Named(TOPIC_NAME)
     private TopicPublisher monitorTopicPublisher;
 
     private Cache<String, MercuryMessage> publishedMessagesArchive;
@@ -55,7 +56,7 @@ public class ScheduledLatencyInspector implements Managed {
         publisherExecutor.scheduleAtFixedRate(this::publishMessage,
                 configuration.getPublicationIntervalMillis(), configuration.getPublicationIntervalMillis(), TimeUnit.MILLISECONDS);
 
-        MercuryConsumers.setConsumer("MercuryMonitor", this::consumeMessage);
+        MercuryConsumers.setConsumer(TOPIC_NAME, this::consumeMessage);
     }
 
     @Override
