@@ -13,7 +13,7 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
     private static final Logger logger = LoggerFactory.getLogger(Service.class);
 
     protected Service() {
-        super("mercury-monitor", Configuration.class, null, new GuiceModule());
+        super("mercuryMonitor", Configuration.class, null, new GuiceModule());
     }
 
     public static void main(String[] args) throws Exception {

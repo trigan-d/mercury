@@ -32,7 +32,7 @@
         </adminConnectors>
     </server>
     <metadata>
-        <application>mercury-monitor</application>
+        <application>mercuryMonitor</application>
         <!--team name-->
         <owner>Core</owner>
         <!--team email-->
@@ -59,9 +59,9 @@
         </statusServiceMetrics>
     </metadata>
     <eureka>
-        <name>mercury-monitor</name>
+        <name>mercuryMonitor</name>
         <port>8638</port>
-        <vipAddress>mercury-monitor.mercury.odesk.com</vipAddress>
+        <vipAddress>mercuryMonitor.mercury.odesk.com</vipAddress>
     </eureka>
 
     <mercury>
