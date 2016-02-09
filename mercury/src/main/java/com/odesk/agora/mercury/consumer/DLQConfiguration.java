@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
  * @see <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/SQSDeadLetterQueue.html">SQS documentation for dead letter queues</a>
  */
 public class DLQConfiguration extends QueueConfiguration {
-    private static final long DEFAULT_POLLING_INTERVAL_MS = 10000;
+    private static final long DEFAULT_POLLING_INTERVAL_MS = 5000;
     private static final int DEFAULT_VISIBILITY_TIMEOUT_SEC = 60;
     private static final int DEFAULT_POLLING_WAIT_TIME_SEC = 20; //Enable long polling by default. Set to zero if you want short polling instead.
     private static final int DEFAULT_DELAY_SEC = 0;

@@ -3,8 +3,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.odesk.agora.mercury.samples</groupId>
-    <artifactId>corev2pubcons</artifactId>
+    <groupId>com.odesk.agora.mercury.monitor</groupId>
+    <artifactId>monitor</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -76,7 +76,7 @@
     </distributionManagement>
 
     <build>
-        <finalName>corev2pubcons</finalName>
+        <finalName>monitor</finalName>
         <resources>
             <resource>
                 <directory>service/src/main/resources</directory>

@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
  * Configuration for SQS queues subscribed to Mercury SNS topics.
  */
 public class TopicSubscriptionConfiguration extends QueueConfiguration {
-    public static final long DEFAULT_POLLING_INTERVAL_MS = 5000;
+    public static final long DEFAULT_POLLING_INTERVAL_MS = 200;
     public static final int DEFAULT_VISIBILITY_TIMEOUT_SEC = 30;
     public static final int DEFAULT_POLLING_WAIT_TIME_SEC = 20; //Enable long polling by default. Set to zero if you want short polling instead.
     public static final int DEFAULT_DELAY_SEC = 0;
