@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.odesk.agora.mercury.monitor</groupId>
     <artifactId>service</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <properties>
         <deploymentContext>loca-dev</deploymentContext>
@@ -15,7 +15,7 @@
     <parent>
         <groupId>com.odesk.agora.mercury.monitor</groupId>
         <artifactId>monitor</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
         <relativePath>../pom.xml </relativePath>
     </parent>
 
