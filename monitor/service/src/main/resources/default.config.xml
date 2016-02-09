@@ -71,7 +71,7 @@
         <consumer>
             <subscription1>
                 <topicName>MercuryMonitor</topicName>
-                <pollingIntervalMs>5000</pollingIntervalMs>
+                <pollingIntervalMs>200</pollingIntervalMs>
                 <maxReceiveCount>1</maxReceiveCount>
                 <dlq>
                     <enabled>false</enabled>
@@ -80,7 +80,7 @@
         </consumer>
     </mercury>
 
-    <publicationIntervalMillis>4000</publicationIntervalMillis>
+    <publicationIntervalMillis>1000</publicationIntervalMillis>
     <highLatencyThresholdMillis>20000</highLatencyThresholdMillis>
     <failedDeliveryLatencyMillis>120000</failedDeliveryLatencyMillis>
 
