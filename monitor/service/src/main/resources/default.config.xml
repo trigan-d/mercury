@@ -45,13 +45,13 @@
 
         <statusServiceMetrics>
             <warning>
-                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>15000</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>2000</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>
                 <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.highLatencyMessagesRate.15MinuteRate>0.1</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.highLatencyMessagesRate.15MinuteRate>
                 <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedDeliveryRate.15MinuteRate>0.02</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedDeliveryRate.15MinuteRate>
                 <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedPublicationRate.15MinuteRate>0.02</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedPublicationRate.15MinuteRate>
             </warning>
             <error>
-                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>60000</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>
+                <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>5000</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.deliveryRatesAndLatencies.75percentile>
                 <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.highLatencyMessagesRate.15MinuteRate>0.3</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.highLatencyMessagesRate.15MinuteRate>
                 <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedDeliveryRate.15MinuteRate>0.05</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedDeliveryRate.15MinuteRate>
                 <com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedPublicationRate.15MinuteRate>0.05</com.odesk.agora.mercury.monitor.ScheduledLatencyInspector.failedPublicationRate.15MinuteRate>
@@ -81,7 +81,7 @@
     </mercury>
 
     <publicationIntervalMillis>1000</publicationIntervalMillis>
-    <highLatencyThresholdMillis>20000</highLatencyThresholdMillis>
+    <highLatencyThresholdMillis>10000</highLatencyThresholdMillis>
     <failedDeliveryLatencyMillis>120000</failedDeliveryLatencyMillis>
 
     <atlas>
