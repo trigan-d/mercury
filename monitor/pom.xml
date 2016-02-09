@@ -120,4 +120,9 @@
             </plugin>
         </plugins>
     </build>
+    <!--release setup-->
+    <scm>
+        <developerConnection>scm:git:ssh://git@stash.odesk.com:7999/agora/agora-mercury.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 </project>
