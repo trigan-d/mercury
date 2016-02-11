@@ -1,6 +1,7 @@
 package com.odesk.agora.mercury.publisher;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.odesk.agora.mercury.publisher.config.PublisherConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

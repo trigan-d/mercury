@@ -7,7 +7,7 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.odesk.agora.mercury.consumer.config.ConsumerConfiguration;
 import com.odesk.agora.mercury.consumer.config.DLQConfiguration;
 import com.odesk.agora.mercury.consumer.config.TopicSubscriptionConfiguration;
-import com.odesk.agora.mercury.publisher.PublisherConfiguration;
+import com.odesk.agora.mercury.publisher.config.PublisherConfiguration;
 import com.odesk.agora.mercury.publisher.TopicPublishersFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
