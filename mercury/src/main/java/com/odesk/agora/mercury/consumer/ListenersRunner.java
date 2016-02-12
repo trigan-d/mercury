@@ -2,8 +2,12 @@ package com.odesk.agora.mercury.consumer;
 
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.util.Topics;
+import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
-import com.odesk.agora.mercury.publisher.PublisherConfiguration;
+import com.odesk.agora.mercury.consumer.config.ConsumerConfiguration;
+import com.odesk.agora.mercury.consumer.config.DLQConfiguration;
+import com.odesk.agora.mercury.consumer.config.TopicSubscriptionConfiguration;
+import com.odesk.agora.mercury.publisher.config.PublisherConfiguration;
 import com.odesk.agora.mercury.publisher.TopicPublishersFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,15 +35,29 @@ public class ListenersRunner {
     public static final String QUEUE_NAME_DELIMITER = "-";
     public static final String DLQ_NAME_POSTFIX = "DLQ";
 
-    private ScheduledExecutorService listenersExecutor;
+    private final ScheduledExecutorService listenersExecutor;
 
+    /**
+     * The default consumptionExecutor would be instantiated as {@code Executors.newCachedThreadPool()}.
+     * No metrics handler by default.
+     * @see #ListenersRunner(ConsumerConfiguration, PublisherConfiguration, AmazonSQSBufferedAsyncClient, AmazonSNSClient, Executor, ConsumerMetricsHandler) the basic constructor
+     */
     public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
                            AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient) {
-        this(consumerConfig, publisherConfig, sqsClient, snsClient, Executors.newCachedThreadPool());
+        this(consumerConfig, publisherConfig, sqsClient, snsClient, Executors.newCachedThreadPool(), null);
     }
 
+    /**
+     * @param consumerConfig - consumer configuration
+     * @param publisherConfig - publisher configuration (we need it to obtain the prefix for SNS topics)
+     * @param sqsClient - instance of {@link AmazonSQSClient}, used to receive and delete the messages
+     * @param snsClient - instance of {@link AmazonSNSClient}, used to subscribe a SQS queue to SNS topic
+     * @param consumptionExecutor - {@link Executor} for parallel messages consumption
+     * @param metricsHandler - consumer metrics handler
+     */
     public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
-                           AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient, Executor consumptionExecutor) {
+                           AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient,
+                           Executor consumptionExecutor, ConsumerMetricsHandler metricsHandler) {
         listenersExecutor = Executors.newScheduledThreadPool(calculateListenersNumber(consumerConfig), new ListenersThreadFactory());
 
         for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
@@ -58,7 +76,8 @@ public class ListenersRunner {
                 logger.info("SQS queue {} prepared for consuming. QueueUrl={}", subscriptionConfig.getTopicName(), queueUrl);
             }
 
-            listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), queueUrl, false, sqsClient, consumptionExecutor),
+            listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), queueUrl,
+                                                                            false, sqsClient, consumptionExecutor, metricsHandler),
                     subscriptionConfig.getPollingIntervalMs(), subscriptionConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
 
             DLQConfiguration dlqConfig = subscriptionConfig.getDLQConfig();
@@ -74,7 +93,8 @@ public class ListenersRunner {
 
                 logger.info("DLQ {} configured for topic {}.", dlqUrl, subscriptionConfig.getTopicName());
 
-                listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), dlqUrl, true, sqsClient, consumptionExecutor),
+                listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), dlqUrl,
+                                                                                true, sqsClient, consumptionExecutor, metricsHandler),
                         dlqConfig.getPollingIntervalMs(), dlqConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
             }
         }

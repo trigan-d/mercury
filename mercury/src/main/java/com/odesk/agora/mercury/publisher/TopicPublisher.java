@@ -30,14 +30,17 @@ public class TopicPublisher {
     private final String topicName;
     private final String topicArn;
     private final String senderAppId;
-    private Supplier<String> messageIdSupplier;
+    private final Supplier<String> messageIdSupplier;
+    private final PublisherMetricsHandler metricsHandler;
 
-    public TopicPublisher(AmazonSNSClient snsClient, String topicName, String topicArn, String senderAppId, Supplier<String> messageIdSupplier) {
+    public TopicPublisher(String topicName, String topicArn, AmazonSNSClient snsClient, String senderAppId,
+                          Supplier<String> messageIdSupplier, PublisherMetricsHandler metricsHandler) {
         this.snsClient = snsClient;
         this.topicName = topicName;
         this.topicArn = topicArn;
         this.senderAppId = senderAppId;
         this.messageIdSupplier = messageIdSupplier;
+        this.metricsHandler = metricsHandler;
 
         logger = LoggerFactory.getLogger(TopicPublisher.class + "-" + topicName);
     }
@@ -143,7 +146,20 @@ public class TopicPublisher {
             setTimestamp(new Date());
             PublishRequest request = new PublishRequest(topicArn, Jackson.toJsonString(this));
             logger.debug("Publishing message {}", this);
-            snsClient.publish(request);
+
+            try {
+                snsClient.publish(request);
+                if(metricsHandler != null) {
+                    metricsHandler.handlePublicationSuccess(topicName);
+                }
+            } catch(Throwable t) {
+                logger.warn("Publication error", t);
+                if(metricsHandler != null) {
+                    metricsHandler.handlePublicationFail(topicName);
+                }
+                throw t;
+            }
+
             return this;
         }
     }

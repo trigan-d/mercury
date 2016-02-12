@@ -1,4 +1,6 @@
-package com.odesk.agora.mercury.consumer;
+package com.odesk.agora.mercury.consumer.config;
+
+import com.odesk.agora.mercury.consumer.PlainSQSConsumers;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
