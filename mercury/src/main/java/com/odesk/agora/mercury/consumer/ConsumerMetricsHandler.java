@@ -6,17 +6,17 @@ package com.odesk.agora.mercury.consumer;
  * Handler for consumer metrics. Implementation has to be thread-safe.
  */
 public interface ConsumerMetricsHandler {
-    void handlePollingSuccess(String topicName, int receivedAmount);
-
     void handlePollingFail(String topicName);
+
+    void handlePollingSuccess(String topicName, int receivedAmount);
 
     void handleEmptyPollingResult(String topicName);
 
     void handleFullPollingResult(String topicName);
 
-    void handleConsumptionSuccess(String topicName);
+    void handleDeliveryLatency(String topicName, long latencyMillis);
 
     void handleConsumptionFail(String topicName);
 
-    void handleDeliveryLatency(String topicName, long latencyMillis);
+    void handleConsumptionDuration(String topicName, long durationMillis);
 }

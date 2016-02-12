@@ -107,9 +107,11 @@ public class TopicQueueListener implements Runnable {
 
     public class ConsumptionJob implements Runnable {
         private final Message message;
+        private final long deliveryTime;
 
         public ConsumptionJob(Message message) {
             this.message = message;
+            this.deliveryTime = System.currentTimeMillis();
         }
 
         public String getTopicName() {
@@ -156,7 +158,7 @@ public class TopicQueueListener implements Runnable {
             try {
                 MercuryMessage mercuryMessage = Jackson.fromJsonString(message.getBody(), MercuryMessage.class);
                 if(metricsHandler != null && !isDLQ) {
-                    metricsHandler.handleDeliveryLatency(topicNameForLogging, System.currentTimeMillis() - mercuryMessage.getTimestamp().getTime());
+                    metricsHandler.handleDeliveryLatency(topicNameForLogging, deliveryTime - mercuryMessage.getTimestamp().getTime());
                 }
 
                 logger.debug("Processing message {}", mercuryMessage);
@@ -178,7 +180,7 @@ public class TopicQueueListener implements Runnable {
 
         private void handleMetricConsumptionSuccess() {
             if(metricsHandler != null) {
-                metricsHandler.handleConsumptionSuccess(topicNameForLogging);
+                metricsHandler.handleConsumptionDuration(topicNameForLogging, System.currentTimeMillis() - deliveryTime);
             }
         }
     }
