@@ -68,7 +68,7 @@ public class TopicQueueListener implements Runnable {
     }
 
     public void run() {
-        if(MercuryConsumers.getConsumerForTopic(topicName, isDLQ) == null) {
+        if(MercuryConsumers.getConsumerForTopic(topicName, isDLQ) == null && PlainSQSConsumers.getConsumerForTopic(topicName, isDLQ) == null) {
             logger.warn("No consumer registered for {} yet. Skip SQS fetching.", topicNameForLogging);
         } else {
             List<Message> pollingResult;
