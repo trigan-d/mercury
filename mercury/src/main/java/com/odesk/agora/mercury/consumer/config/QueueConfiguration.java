@@ -1,6 +1,5 @@
 package com.odesk.agora.mercury.consumer.config;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -54,11 +53,21 @@ public abstract class QueueConfiguration {
     @Max(900)
     private int delaySec;
 
-    protected QueueConfiguration(long pollingIntervalMs, int visibilityTimeoutSec, int pollingWaitTimeSec, int delaySec) {
+    /**
+     * The number of seconds Amazon SQS retains a message in the queue.
+     * Default is 1209600 (14 days) - maximal allowed.
+     */
+    @NotNull
+    @Min(60)
+    @Max(1209600)
+    private int retentionPeriodSec;
+
+    protected QueueConfiguration(long pollingIntervalMs, int visibilityTimeoutSec, int pollingWaitTimeSec, int delaySec, int retentionPeriodSec) {
         this.pollingIntervalMs = pollingIntervalMs;
         this.visibilityTimeoutSec = visibilityTimeoutSec;
         this.pollingWaitTimeSec = pollingWaitTimeSec;
         this.delaySec = delaySec;
+        this.retentionPeriodSec = retentionPeriodSec;
     }
 
     /**
@@ -70,6 +79,7 @@ public abstract class QueueConfiguration {
         map.put("VisibilityTimeout", String.valueOf(visibilityTimeoutSec));
         map.put("ReceiveMessageWaitTimeSeconds", String.valueOf(pollingWaitTimeSec));
         map.put("DelaySeconds", String.valueOf(delaySec));
+        map.put("MessageRetentionPeriod", String.valueOf(retentionPeriodSec));
 
         return map;
     }
@@ -88,5 +98,9 @@ public abstract class QueueConfiguration {
 
     public int getDelaySec() {
         return delaySec;
+    }
+
+    public int getRetentionPeriodSec() {
+        return retentionPeriodSec;
     }
 }
