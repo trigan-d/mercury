@@ -17,9 +17,10 @@ public class TopicSubscriptionConfiguration extends QueueConfiguration {
     public static final int DEFAULT_VISIBILITY_TIMEOUT_SEC = 30;
     public static final int DEFAULT_POLLING_WAIT_TIME_SEC = 20; //Enable long polling by default. Set to zero if you want short polling instead.
     public static final int DEFAULT_DELAY_SEC = 0;
+    public static final int DEFAULT_RETENTION_PERIOD_SEC = 1209600;
 
     public TopicSubscriptionConfiguration() {
-        super(DEFAULT_POLLING_INTERVAL_MS, DEFAULT_VISIBILITY_TIMEOUT_SEC, DEFAULT_POLLING_WAIT_TIME_SEC, DEFAULT_DELAY_SEC);
+        super(DEFAULT_POLLING_INTERVAL_MS, DEFAULT_VISIBILITY_TIMEOUT_SEC, DEFAULT_POLLING_WAIT_TIME_SEC, DEFAULT_DELAY_SEC, DEFAULT_RETENTION_PERIOD_SEC);
     }
 
     /**
