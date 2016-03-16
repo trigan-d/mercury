@@ -18,11 +18,13 @@ public class TypedMessage<T> extends MercuryMessage {
     protected TypedMessage(MercuryMessage original, T payload) {
         setSerializedPayload(original.getSerializedPayload());
         setContentType(original.getContentType());
+        setPayloadType(original.getPayloadType());
         setMessageId(original.getMessageId());
         setTimestamp(original.getTimestamp());
         setSenderAppId(original.getSenderAppId());
         setTopicName(original.getTopicName());
         setMetadata(original.getMetadata());
+        setAgoraMDCData(original.getAgoraMDCData());
 
         this.payload = payload;
     }

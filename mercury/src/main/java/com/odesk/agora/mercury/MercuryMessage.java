@@ -29,6 +29,11 @@ public class MercuryMessage {
      */
     private String contentType;
 
+    /*
+     * A type of the payload. Usually it is automatically set to the name of payload object's class.
+     */
+    private String payloadType;
+
     /**
      * The payload being serialized with to the given content-type
      */
@@ -59,6 +64,11 @@ public class MercuryMessage {
      * Is set automatically during {@link TopicPublisher.MessageToPublish#publish()}.
      */
     private Date timestamp;
+
+    /**
+     * Agora MDC data: requestId, traceId, spanId, parentSpanId. Agora core automatically populates this field.
+     */
+    private AgoraMDCData agoraMDCData;
 
     /**
      * Any custom user-defined metadata. Null by default.
@@ -115,6 +125,22 @@ public class MercuryMessage {
         this.contentType = contentType;
     }
 
+    public String getPayloadType() {
+        return payloadType;
+    }
+
+    public void setPayloadType(String payloadType) {
+        this.payloadType = payloadType;
+    }
+
+    public AgoraMDCData getAgoraMDCData() {
+        return agoraMDCData;
+    }
+
+    public void setAgoraMDCData(AgoraMDCData agoraMDCData) {
+        this.agoraMDCData = agoraMDCData;
+    }
+
     public Map<String, String> getMetadata() {
         return metadata;
     }
@@ -136,7 +162,9 @@ public class MercuryMessage {
         sb.append("senderAppId=" + senderAppId + ", ");
         sb.append("messageId=" + messageId + ", ");
         sb.append("timestamp=" + timestamp + ", ");
+        sb.append("agoraMDCData=" + agoraMDCData + ", ");
         sb.append("contentType=" + contentType + ", ");
+        sb.append("payloadType=" + payloadType + ", ");
         sb.append("payloadSize=" + serializedPayload.length());
 
         if(! (metadata == null || metadata.isEmpty()))
