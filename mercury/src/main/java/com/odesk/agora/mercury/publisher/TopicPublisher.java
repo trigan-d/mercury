@@ -57,7 +57,7 @@ public class TopicPublisher {
 
     /**
      * Construct a message with plain text payload
-     * Shorthand for {@code messageWithSerializedPayload(value, "text/plain", "text/plain")}.
+     * Shorthand for {@code messageWithSerializedPayload(value, "text/plain", String.class.getName())}.
      */
     public MessageToPublish messageWithTextPayload(String value) {
         return messageWithSerializedPayload(value, MercuryMessage.CONTENT_TYPE_PLAIN, String.class.getName());
