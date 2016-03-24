@@ -6,6 +6,7 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.util.json.Jackson;
+import com.odesk.agora.mercury.AgoraMDCData;
 import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class TopicQueueListener implements Runnable {
 
     private final AmazonSQSBufferedAsyncClient sqsClient;
     private final Executor consumptionExecutor;
+    private final Consumer<AgoraMDCData> agoraMDCDataSetter;
     private final ConsumerMetricsHandler metricsHandler;
 
     private final String topicNameForLogging;
@@ -41,12 +43,14 @@ public class TopicQueueListener implements Runnable {
     private final AsyncHandler<DeleteMessageRequest, Void> deletionAsyncHandler;
 
     public TopicQueueListener(String topicName, String queueUrl, boolean isDLQ,
-                              AmazonSQSBufferedAsyncClient sqsClient, Executor consumptionExecutor, ConsumerMetricsHandler metricsHandler) {
+                              AmazonSQSBufferedAsyncClient sqsClient, Executor consumptionExecutor,
+                              Consumer<AgoraMDCData> agoraMDCDataSetter, ConsumerMetricsHandler metricsHandler) {
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.isDLQ = isDLQ;
         this.topicName = topicName;
         this.consumptionExecutor = consumptionExecutor;
+        this.agoraMDCDataSetter = agoraMDCDataSetter;
         this.metricsHandler = metricsHandler;
 
         this.topicNameForLogging = topicName + (isDLQ ? "-DLQ" : "");
@@ -159,6 +163,10 @@ public class TopicQueueListener implements Runnable {
                 MercuryMessage mercuryMessage = Jackson.fromJsonString(message.getBody(), MercuryMessage.class);
                 if(metricsHandler != null && !isDLQ) {
                     metricsHandler.handleDeliveryLatency(topicNameForLogging, deliveryTime - mercuryMessage.getTimestamp().getTime());
+                }
+
+                if(mercuryMessage.getAgoraMDCData() != null) {
+                    agoraMDCDataSetter.accept(mercuryMessage.getAgoraMDCData());
                 }
 
                 logger.debug("Processing message {}", mercuryMessage);

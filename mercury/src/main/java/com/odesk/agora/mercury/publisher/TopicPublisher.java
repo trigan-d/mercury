@@ -32,17 +32,17 @@ public class TopicPublisher {
     private final String topicArn;
     private final String senderAppId;
     private final Supplier<String> messageIdSupplier;
-    private final Supplier<AgoraMDCData> agoraMDCDataSupplier;
+    private final Supplier<AgoraMDCData> agoraMDCDataGetter;
     private final PublisherMetricsHandler metricsHandler;
 
     public TopicPublisher(String topicName, String topicArn, AmazonSNSClient snsClient, String senderAppId,
-                          Supplier<String> messageIdSupplier, Supplier<AgoraMDCData> agoraMDCDataSupplier, PublisherMetricsHandler metricsHandler) {
+                          Supplier<String> messageIdSupplier, Supplier<AgoraMDCData> agoraMDCDataGetter, PublisherMetricsHandler metricsHandler) {
         this.snsClient = snsClient;
         this.topicName = topicName;
         this.topicArn = topicArn;
         this.senderAppId = senderAppId;
         this.messageIdSupplier = messageIdSupplier;
-        this.agoraMDCDataSupplier = agoraMDCDataSupplier;
+        this.agoraMDCDataGetter = agoraMDCDataGetter;
         this.metricsHandler = metricsHandler;
 
         logger = LoggerFactory.getLogger(TopicPublisher.class + "-" + topicName);
@@ -105,7 +105,7 @@ public class TopicPublisher {
             setSenderAppId(senderAppId);
             setTopicName(topicName);
 
-            setAgoraMDCData(agoraMDCDataSupplier.get());
+            setAgoraMDCData(agoraMDCDataGetter.get());
         }
 
         /**

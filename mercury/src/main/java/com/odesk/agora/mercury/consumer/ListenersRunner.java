@@ -4,6 +4,7 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.util.Topics;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+import com.odesk.agora.mercury.AgoraMDCData;
 import com.odesk.agora.mercury.consumer.config.ConsumerConfiguration;
 import com.odesk.agora.mercury.consumer.config.DLQConfiguration;
 import com.odesk.agora.mercury.consumer.config.TopicSubscriptionConfiguration;
@@ -20,6 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * Created by Dmitry Solovyov on 11/27/2015.
@@ -39,12 +41,12 @@ public class ListenersRunner {
 
     /**
      * The default consumptionExecutor would be instantiated as {@code Executors.newCachedThreadPool()}.
-     * No metrics handler by default.
-     * @see #ListenersRunner(ConsumerConfiguration, PublisherConfiguration, AmazonSQSBufferedAsyncClient, AmazonSNSClient, Executor, ConsumerMetricsHandler) the basic constructor
+     * No metrics handler by default. No agora MDC data processing by default.
+     * @see #ListenersRunner(ConsumerConfiguration, PublisherConfiguration, AmazonSQSBufferedAsyncClient, AmazonSNSClient, Executor, Consumer, ConsumerMetricsHandler) the basic constructor
      */
     public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
                            AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient) {
-        this(consumerConfig, publisherConfig, sqsClient, snsClient, Executors.newCachedThreadPool(), null);
+        this(consumerConfig, publisherConfig, sqsClient, snsClient, Executors.newCachedThreadPool(), (mdcData) -> {}, null);
     }
 
     /**
@@ -53,11 +55,12 @@ public class ListenersRunner {
      * @param sqsClient - instance of {@link AmazonSQSClient}, used to receive and delete the messages
      * @param snsClient - instance of {@link AmazonSNSClient}, used to subscribe a SQS queue to SNS topic
      * @param consumptionExecutor - {@link Executor} for parallel messages consumption
+     * @param agoraMDCDataSetter - should propagate agora MDC data to the consumer thread. {@link TopicQueueListener} uses it to apply MDC data passed with a message.
      * @param metricsHandler - consumer metrics handler
      */
     public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
                            AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient,
-                           Executor consumptionExecutor, ConsumerMetricsHandler metricsHandler) {
+                           Executor consumptionExecutor, Consumer<AgoraMDCData> agoraMDCDataSetter, ConsumerMetricsHandler metricsHandler) {
         listenersExecutor = Executors.newScheduledThreadPool(calculateListenersNumber(consumerConfig), new ListenersThreadFactory());
 
         for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
@@ -77,7 +80,7 @@ public class ListenersRunner {
             }
 
             listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), queueUrl,
-                                                                            false, sqsClient, consumptionExecutor, metricsHandler),
+                                                                            false, sqsClient, consumptionExecutor, agoraMDCDataSetter, metricsHandler),
                     subscriptionConfig.getPollingIntervalMs(), subscriptionConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
 
             DLQConfiguration dlqConfig = subscriptionConfig.getDLQConfig();
@@ -94,7 +97,7 @@ public class ListenersRunner {
                 logger.info("DLQ {} configured for topic {}.", dlqUrl, subscriptionConfig.getTopicName());
 
                 listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), dlqUrl,
-                                                                                true, sqsClient, consumptionExecutor, metricsHandler),
+                                                                                true, sqsClient, consumptionExecutor, agoraMDCDataSetter, metricsHandler),
                         dlqConfig.getPollingIntervalMs(), dlqConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
             }
         }

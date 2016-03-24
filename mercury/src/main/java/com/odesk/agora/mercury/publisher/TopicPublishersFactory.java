@@ -24,7 +24,7 @@ public class TopicPublishersFactory {
     private final AmazonSNSClient snsClient;
     private final String senderAppId;
     private final Supplier<String> messageIdSupplier;
-    private final Supplier<AgoraMDCData> agoraMDCDataSupplier;
+    private final Supplier<AgoraMDCData> agoraMDCDataGetter;
     private final PublisherMetricsHandler metricsHandler;
 
     private ConcurrentHashMap<String, TopicPublisher> topicPublishers = new ConcurrentHashMap<>();
@@ -43,16 +43,16 @@ public class TopicPublishersFactory {
      * @param snsClient - instance of {@link AmazonSNSClient} to be used for publishing
      * @param senderAppId - the ID of sending (publishing) application. Agora core sets it to the service name.
      * @param messageIdSupplier - the supplier for message IDs. {@link TopicPublisher.MessageToPublish#publish()} uses it to generate an ID before publication if it's not set explicitly.
-     * @param agoraMDCDataSupplier - the supplier for agora MDC data. {@link TopicPublisher} uses it to attach MDC data to every message created.
+     * @param agoraMDCDataGetter - should obtain agora MDC data from the publisher thread. {@link TopicPublisher} uses it to attach MDC data to every message created.
      * @param metricsHandler - publisher metrics handler
      */
     public TopicPublishersFactory(PublisherConfiguration publisherConfig, AmazonSNSClient snsClient, String senderAppId,
-                                  Supplier<String> messageIdSupplier, Supplier<AgoraMDCData> agoraMDCDataSupplier, PublisherMetricsHandler metricsHandler) {
+                                  Supplier<String> messageIdSupplier, Supplier<AgoraMDCData> agoraMDCDataGetter, PublisherMetricsHandler metricsHandler) {
         this.publisherConfig = publisherConfig;
         this.snsClient = snsClient;
         this.senderAppId = senderAppId;
         this.messageIdSupplier = messageIdSupplier;
-        this.agoraMDCDataSupplier = agoraMDCDataSupplier;
+        this.agoraMDCDataGetter = agoraMDCDataGetter;
         this.metricsHandler = metricsHandler;
     }
 
@@ -64,7 +64,7 @@ public class TopicPublishersFactory {
         return topicPublishers.computeIfAbsent(publisherConfig.getTopicNamesPrefix() + TOPIC_NAME_DELIMITER + topicName, prefixedName -> {
             String topicArn = snsClient.createTopic(prefixedName).getTopicArn();
             logger.info("SNS topic {} prepared for publishing. TopicArn is {}", topicName, topicArn);
-            return new TopicPublisher(topicName, topicArn, snsClient, senderAppId, messageIdSupplier, agoraMDCDataSupplier, metricsHandler);
+            return new TopicPublisher(topicName, topicArn, snsClient, senderAppId, messageIdSupplier, agoraMDCDataGetter, metricsHandler);
         });
     }
 }
