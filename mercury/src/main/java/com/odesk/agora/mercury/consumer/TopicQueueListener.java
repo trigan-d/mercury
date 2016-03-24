@@ -36,6 +36,7 @@ public class TopicQueueListener implements Runnable {
     private final AmazonSQSBufferedAsyncClient sqsClient;
     private final Executor consumptionExecutor;
     private final Consumer<AgoraMDCData> agoraMDCDataSetter;
+    private final Runnable agoraMDCDataCleaner;
     private final ConsumerMetricsHandler metricsHandler;
 
     private final String topicNameForLogging;
@@ -44,13 +45,14 @@ public class TopicQueueListener implements Runnable {
 
     public TopicQueueListener(String topicName, String queueUrl, boolean isDLQ,
                               AmazonSQSBufferedAsyncClient sqsClient, Executor consumptionExecutor,
-                              Consumer<AgoraMDCData> agoraMDCDataSetter, ConsumerMetricsHandler metricsHandler) {
+                              Consumer<AgoraMDCData> agoraMDCDataSetter, Runnable agoraMDCDataCleaner, ConsumerMetricsHandler metricsHandler) {
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.isDLQ = isDLQ;
         this.topicName = topicName;
         this.consumptionExecutor = consumptionExecutor;
         this.agoraMDCDataSetter = agoraMDCDataSetter;
+        this.agoraMDCDataCleaner = agoraMDCDataCleaner;
         this.metricsHandler = metricsHandler;
 
         this.topicNameForLogging = topicName + (isDLQ ? "-DLQ" : "");
@@ -103,7 +105,7 @@ public class TopicQueueListener implements Runnable {
 
                 for(Message message : pollingResult) {
                     consumptionExecutor.execute(new ConsumptionJob(message));
-                };
+                }
             }
         }
     }
@@ -177,6 +179,8 @@ public class TopicQueueListener implements Runnable {
                 logger.error("Can't process Mercury message", t);
                 handleMetricConsumptionFail();
                 return false;
+            } finally {
+                agoraMDCDataCleaner.run();
             }
         }
 

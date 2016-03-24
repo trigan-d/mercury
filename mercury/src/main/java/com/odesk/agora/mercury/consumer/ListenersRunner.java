@@ -41,12 +41,12 @@ public class ListenersRunner {
 
     /**
      * The default consumptionExecutor would be instantiated as {@code Executors.newCachedThreadPool()}.
-     * No metrics handler by default. No agora MDC data processing by default.
-     * @see #ListenersRunner(ConsumerConfiguration, PublisherConfiguration, AmazonSQSBufferedAsyncClient, AmazonSNSClient, Executor, Consumer, ConsumerMetricsHandler) the basic constructor
+     * No metrics handler by default. No agora MDC data processing or cleanup by default.
+     * @see #ListenersRunner(ConsumerConfiguration, PublisherConfiguration, AmazonSQSBufferedAsyncClient, AmazonSNSClient, Executor, Consumer, Runnable, ConsumerMetricsHandler) the basic constructor
      */
     public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
                            AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient) {
-        this(consumerConfig, publisherConfig, sqsClient, snsClient, Executors.newCachedThreadPool(), (mdcData) -> {}, null);
+        this(consumerConfig, publisherConfig, sqsClient, snsClient, Executors.newCachedThreadPool(), (mdcData) -> {}, ()->{}, null);
     }
 
     /**
@@ -56,11 +56,12 @@ public class ListenersRunner {
      * @param snsClient - instance of {@link AmazonSNSClient}, used to subscribe a SQS queue to SNS topic
      * @param consumptionExecutor - {@link Executor} for parallel messages consumption
      * @param agoraMDCDataSetter - should propagate agora MDC data to the consumer thread. {@link TopicQueueListener} uses it to apply MDC data passed with a message.
+     * @param agoraMDCDataCleaner -should cleanup agora MDC data from the consumer thread. {@link TopicQueueListener} invokes it after message consumption.
      * @param metricsHandler - consumer metrics handler
      */
     public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
                            AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient,
-                           Executor consumptionExecutor, Consumer<AgoraMDCData> agoraMDCDataSetter, ConsumerMetricsHandler metricsHandler) {
+                           Executor consumptionExecutor, Consumer<AgoraMDCData> agoraMDCDataSetter, Runnable agoraMDCDataCleaner, ConsumerMetricsHandler metricsHandler) {
         listenersExecutor = Executors.newScheduledThreadPool(calculateListenersNumber(consumerConfig), new ListenersThreadFactory());
 
         for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
@@ -80,7 +81,7 @@ public class ListenersRunner {
             }
 
             listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), queueUrl,
-                                                                            false, sqsClient, consumptionExecutor, agoraMDCDataSetter, metricsHandler),
+                                                                            false, sqsClient, consumptionExecutor, agoraMDCDataSetter, agoraMDCDataCleaner, metricsHandler),
                     subscriptionConfig.getPollingIntervalMs(), subscriptionConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
 
             DLQConfiguration dlqConfig = subscriptionConfig.getDLQConfig();
@@ -97,7 +98,7 @@ public class ListenersRunner {
                 logger.info("DLQ {} configured for topic {}.", dlqUrl, subscriptionConfig.getTopicName());
 
                 listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), dlqUrl,
-                                                                                true, sqsClient, consumptionExecutor, agoraMDCDataSetter, metricsHandler),
+                                                                                true, sqsClient, consumptionExecutor, agoraMDCDataSetter, agoraMDCDataCleaner, metricsHandler),
                         dlqConfig.getPollingIntervalMs(), dlqConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
             }
         }
