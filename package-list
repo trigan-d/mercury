@@ -1,6 +1,8 @@
 com.odesk.agora.mercury
 com.odesk.agora.mercury.aop
 com.odesk.agora.mercury.consumer
+com.odesk.agora.mercury.consumer.config
 com.odesk.agora.mercury.publisher
+com.odesk.agora.mercury.publisher.config
 com.odesk.agora.mercury.sns
 com.odesk.agora.mercury.sqs
