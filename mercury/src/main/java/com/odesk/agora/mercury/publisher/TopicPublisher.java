@@ -4,6 +4,7 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.util.StringUtils;
 import com.amazonaws.util.json.Jackson;
+import com.odesk.agora.mercury.AgoraMDCData;
 import com.odesk.agora.mercury.MercuryMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,42 +32,44 @@ public class TopicPublisher {
     private final String topicArn;
     private final String senderAppId;
     private final Supplier<String> messageIdSupplier;
+    private final Supplier<AgoraMDCData> agoraMDCDataGetter;
     private final PublisherMetricsHandler metricsHandler;
 
     public TopicPublisher(String topicName, String topicArn, AmazonSNSClient snsClient, String senderAppId,
-                          Supplier<String> messageIdSupplier, PublisherMetricsHandler metricsHandler) {
+                          Supplier<String> messageIdSupplier, Supplier<AgoraMDCData> agoraMDCDataGetter, PublisherMetricsHandler metricsHandler) {
         this.snsClient = snsClient;
         this.topicName = topicName;
         this.topicArn = topicArn;
         this.senderAppId = senderAppId;
         this.messageIdSupplier = messageIdSupplier;
+        this.agoraMDCDataGetter = agoraMDCDataGetter;
         this.metricsHandler = metricsHandler;
 
         logger = LoggerFactory.getLogger(TopicPublisher.class + "-" + topicName);
     }
 
     /**
-     * Construct a message with pre-serialized payload of given contentType
+     * Construct a message with a payload of given payloadType being pre-serialized to the given contentType
      */
-    public MessageToPublish messageWithSerializedPayload(String serializedPayload, String contentType) {
-        return new MessageToPublish(serializedPayload, contentType);
+    public MessageToPublish messageWithSerializedPayload(String serializedPayload, String contentType, String payloadType) {
+        return new MessageToPublish(serializedPayload, contentType, payloadType);
     }
 
     /**
      * Construct a message with plain text payload
-     * Shorthand for {@code messageWithSerializedPayload(value, "text/plain")}.
+     * Shorthand for {@code messageWithSerializedPayload(value, "text/plain", String.class.getName())}.
      */
     public MessageToPublish messageWithTextPayload(String value) {
-        return messageWithSerializedPayload(value, MercuryMessage.CONTENT_TYPE_PLAIN);
+        return messageWithSerializedPayload(value, MercuryMessage.CONTENT_TYPE_PLAIN, String.class.getName());
     }
 
     /**
-     * Construct a message with object payload to be automatically serialized to the given contentType.
+     * Construct a message with object payload to be automatically serialized to the given contentType. The payloadType is set to the {@code value.getClass().getName()}.
      * A proper serializer should be registered in {@link MercurySerializers}. Default thrift and json serializers are registered automatically.
      * @throws IllegalStateException if a proper serializer could not be found.
      */
     public <T> MessageToPublish messageWithObjectPayload(T value, String contentType) {
-        return messageWithSerializedPayload(MercurySerializers.serialize(value, contentType), contentType);
+        return messageWithSerializedPayload(MercurySerializers.serialize(value, contentType), contentType, value.getClass().getName());
     }
 
     /**
@@ -94,12 +97,15 @@ public class TopicPublisher {
      * {@link MercuryMessage} wrapper intended for publication.
      */
     public class MessageToPublish extends MercuryMessage {
-        private MessageToPublish(String serializedPayload, String contentType) {
+        private MessageToPublish(String serializedPayload, String contentType, String payloadType) {
             setSerializedPayload(serializedPayload);
             setContentType(contentType);
+            setPayloadType(payloadType);
 
             setSenderAppId(senderAppId);
             setTopicName(topicName);
+
+            setAgoraMDCData(agoraMDCDataGetter.get());
         }
 
         /**

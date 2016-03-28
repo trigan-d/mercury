@@ -10,6 +10,7 @@ import com.odesk.agora.thrift.hello.THello;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * Created by Dmitry Solovyov on 11/30/2015.
@@ -47,7 +48,9 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
 
     private void logHelloMessage(TypedMessage<THello> message) {
         THello tHello = message.getPayload();
-        logger.info("Received Mercury THello message: '{}'. The original {} payload was {}. Metadata.number={}",
-                tHello.getValue(), message.getContentType(), message.getSerializedPayload(), message.getMetadata("number"));
+        logger.info("Received Mercury THello message: '{}'. The original {} payload was {}. Metadata.number={}. AgoraMDCData={}.",
+                tHello.getValue(), message.getContentType(), message.getSerializedPayload(), message.getMetadata("number"), message.getAgoraMDCData());
+
+        logger.info("MDC applied to consumer thread: requestId={}, traceId={}, spanId={}, parentSpanId={}", MDC.get("requestId"), MDC.get("traceId"), MDC.get("spanId"), MDC.get("parentSpanId"));
     }
 }
