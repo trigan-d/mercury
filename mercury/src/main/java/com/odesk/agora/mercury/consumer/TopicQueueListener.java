@@ -8,6 +8,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.util.json.Jackson;
 import com.odesk.agora.mercury.AgoraMDCData;
 import com.odesk.agora.mercury.MercuryMessage;
+import com.odesk.agora.mercury.consumer.config.SubscriptionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,7 @@ import java.util.function.Consumer;
  * Created by Dmitry Solovyov on 11/27/2015.
  * <p>
  * Listener (or poller) for SQS queue. Instances are created and managed by {@link ListenersRunner}.
- * Each message received is passed to the topic consumer registered at {@link MercuryConsumers}.
+ * Each message received is passed to the consumer registered at {@link MercuryConsumers}.
  * Don't poll messages from the queue until a proper consumer is registered.
  * <p>
  * Not intended to be used by end-users.
@@ -29,7 +30,7 @@ public class TopicQueueListener implements Runnable {
 
     private final Logger logger;
 
-    private final String topicName;
+    private final SubscriptionId subscriptionId;
     private final String queueUrl;
     private final boolean isDLQ;
 
@@ -39,25 +40,25 @@ public class TopicQueueListener implements Runnable {
     private final Runnable agoraMDCDataCleaner;
     private final ConsumerMetricsHandler metricsHandler;
 
-    private final String topicNameForLogging;
+    private final String subscriptionIdForLogging;
     private final ReceiveMessageRequest receiveMessageRequest;
     private final AsyncHandler<DeleteMessageRequest, Void> deletionAsyncHandler;
 
-    public TopicQueueListener(String topicName, String queueUrl, boolean isDLQ,
+    public TopicQueueListener(SubscriptionId subscriptionId, String queueUrl, boolean isDLQ,
                               AmazonSQSBufferedAsyncClient sqsClient, Executor consumptionExecutor,
                               Consumer<AgoraMDCData> agoraMDCDataSetter, Runnable agoraMDCDataCleaner, ConsumerMetricsHandler metricsHandler) {
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.isDLQ = isDLQ;
-        this.topicName = topicName;
+        this.subscriptionId = subscriptionId;
         this.consumptionExecutor = consumptionExecutor;
         this.agoraMDCDataSetter = agoraMDCDataSetter;
         this.agoraMDCDataCleaner = agoraMDCDataCleaner;
         this.metricsHandler = metricsHandler;
 
-        this.topicNameForLogging = topicName + (isDLQ ? "-DLQ" : "");
+        this.subscriptionIdForLogging = subscriptionId + (isDLQ ? "-DLQ" : "");
 
-        logger = LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + topicNameForLogging);
+        logger = LoggerFactory.getLogger(TopicQueueListener.class.getName() + "-" + subscriptionIdForLogging);
 
         receiveMessageRequest = new ReceiveMessageRequest().withQueueUrl(queueUrl).withMaxNumberOfMessages(MAX_NUMBER_OF_MESSAGES_PER_POLL);
 
@@ -74,33 +75,33 @@ public class TopicQueueListener implements Runnable {
     }
 
     public void run() {
-        if(MercuryConsumers.getConsumerForTopic(topicName, isDLQ) == null && PlainSQSConsumers.getConsumerForTopic(topicName, isDLQ) == null) {
-            logger.warn("No consumer registered for {} yet. Skip SQS fetching.", topicNameForLogging);
+        if(MercuryConsumers.getConsumerForSubscription(subscriptionId, isDLQ) == null && PlainSQSConsumers.getConsumerForSubscription(subscriptionId, isDLQ) == null) {
+            logger.warn("No consumer registered for {} yet. Skip SQS fetching.", subscriptionIdForLogging);
         } else {
             List<Message> pollingResult;
 
             try {
                 pollingResult = sqsClient.receiveMessage(receiveMessageRequest).getMessages();
                 if(metricsHandler != null) {
-                    metricsHandler.handlePollingSuccess(topicNameForLogging, pollingResult.size());
+                    metricsHandler.handlePollingSuccess(subscriptionIdForLogging, pollingResult.size());
                 }
             } catch(Throwable t) {
                 logger.warn("Polling error", t);
                 if(metricsHandler != null) {
-                    metricsHandler.handlePollingFail(topicNameForLogging);
+                    metricsHandler.handlePollingFail(subscriptionIdForLogging);
                 }
                 throw t;
             }
 
             if(pollingResult.isEmpty()) {
                 if(metricsHandler != null) {
-                    metricsHandler.handleEmptyPollingResult(topicNameForLogging);
+                    metricsHandler.handleEmptyPollingResult(subscriptionIdForLogging);
                 }
             } else {
                 logger.info("Received {} messages", pollingResult.size());
 
                 if((pollingResult.size() == MAX_NUMBER_OF_MESSAGES_PER_POLL) && (metricsHandler != null)) {
-                    metricsHandler.handleFullPollingResult(topicNameForLogging);
+                    metricsHandler.handleFullPollingResult(subscriptionIdForLogging);
                 }
 
                 for(Message message : pollingResult) {
@@ -120,23 +121,19 @@ public class TopicQueueListener implements Runnable {
             this.deliveryTime = System.currentTimeMillis();
         }
 
-        public String getTopicName() {
-            return topicName;
-        }
-
         @Override
         public void run() {
             boolean processed = false;
 
-            Consumer<Message> plainSQSConsumer = PlainSQSConsumers.getConsumerForTopic(topicName, isDLQ);
+            Consumer<Message> plainSQSConsumer = PlainSQSConsumers.getConsumerForSubscription(subscriptionId, isDLQ);
 
             if(plainSQSConsumer != null) {
                 processed = processAsPlainSQSMessage(plainSQSConsumer);
             } else {
-                Consumer<MercuryMessage> mercuryConsumer = MercuryConsumers.getConsumerForTopic(topicName, isDLQ);
+                Consumer<MercuryMessage> mercuryConsumer = MercuryConsumers.getConsumerForSubscription(subscriptionId, isDLQ);
 
                 if(mercuryConsumer == null) {
-                    logger.error("No consumer found for {}. Skip message processing.", topicNameForLogging);
+                    logger.error("No consumer found for {}. Skip message processing.", subscriptionIdForLogging);
                 } else {
                     processed = processAsMercuryMessage(mercuryConsumer);
                 }
@@ -164,7 +161,7 @@ public class TopicQueueListener implements Runnable {
             try {
                 MercuryMessage mercuryMessage = Jackson.fromJsonString(message.getBody(), MercuryMessage.class);
                 if(metricsHandler != null && !isDLQ) {
-                    metricsHandler.handleDeliveryLatency(topicNameForLogging, deliveryTime - mercuryMessage.getTimestamp().getTime());
+                    metricsHandler.handleDeliveryLatency(subscriptionIdForLogging, deliveryTime - mercuryMessage.getTimestamp().getTime());
                 }
 
                 if(mercuryMessage.getAgoraMDCData() != null) {
@@ -186,13 +183,13 @@ public class TopicQueueListener implements Runnable {
 
         private void handleMetricConsumptionFail() {
             if(metricsHandler != null) {
-                metricsHandler.handleConsumptionFail(topicNameForLogging);
+                metricsHandler.handleConsumptionFail(subscriptionIdForLogging);
             }
         }
 
         private void handleMetricConsumptionSuccess() {
             if(metricsHandler != null) {
-                metricsHandler.handleConsumptionDuration(topicNameForLogging, System.currentTimeMillis() - deliveryTime);
+                metricsHandler.handleConsumptionDuration(subscriptionIdForLogging, System.currentTimeMillis() - deliveryTime);
             }
         }
     }

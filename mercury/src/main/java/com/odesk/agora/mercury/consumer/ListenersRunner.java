@@ -7,6 +7,7 @@ import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.odesk.agora.mercury.AgoraMDCData;
 import com.odesk.agora.mercury.consumer.config.ConsumerConfiguration;
 import com.odesk.agora.mercury.consumer.config.DLQConfiguration;
+import com.odesk.agora.mercury.consumer.config.SubscriptionId;
 import com.odesk.agora.mercury.consumer.config.TopicSubscriptionConfiguration;
 import com.odesk.agora.mercury.publisher.config.PublisherConfiguration;
 import com.odesk.agora.mercury.publisher.TopicPublishersFactory;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -62,44 +64,56 @@ public class ListenersRunner {
     public ListenersRunner(ConsumerConfiguration consumerConfig, PublisherConfiguration publisherConfig,
                            AmazonSQSBufferedAsyncClient sqsClient, AmazonSNSClient snsClient,
                            Executor consumptionExecutor, Consumer<AgoraMDCData> agoraMDCDataSetter, Runnable agoraMDCDataCleaner, ConsumerMetricsHandler metricsHandler) {
+        checkSubscriptionIds(consumerConfig);
+
         listenersExecutor = Executors.newScheduledThreadPool(calculateListenersNumber(consumerConfig), new ListenersThreadFactory());
 
         for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
-            String topicName = publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + subscriptionConfig.getTopicName();
-            String queueName = consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + subscriptionConfig.getTopicName();
+            SubscriptionId subId = subscriptionConfig.getSubId();
 
-            String queueUrl = sqsClient.createQueue(queueName).getQueueUrl();
+            String fullSQSQueueName = consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + subId;
+            String queueUrl = sqsClient.createQueue(fullSQSQueueName).getQueueUrl();
             sqsClient.setQueueAttributes(queueUrl, subscriptionConfig.asSQSQueueAttributes());
 
             if (subscriptionConfig.isCreateSNSTopic()) {
-                String topicArn = snsClient.createTopic(topicName).getTopicArn();
+                String fullSNSTopicName = publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + subId.getTopicName();
+                String topicArn = snsClient.createTopic(fullSNSTopicName).getTopicArn();
                 String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
                 snsClient.setSubscriptionAttributes(subscriptionArn, "RawMessageDelivery", "true");
-                logger.info("Mercury topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subscriptionConfig.getTopicName(), topicArn, queueUrl, subscriptionArn);
+                logger.info("Mercury topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subId.getTopicName(), topicArn, queueUrl, subscriptionArn);
             } else {
-                logger.info("SQS queue {} prepared for consuming. QueueUrl={}", subscriptionConfig.getTopicName(), queueUrl);
+                logger.info("SQS queue {} prepared for consuming. QueueUrl={}", subId, queueUrl);
             }
 
-            listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), queueUrl,
-                                                                            false, sqsClient, consumptionExecutor, agoraMDCDataSetter, agoraMDCDataCleaner, metricsHandler),
+            listenersExecutor.scheduleWithFixedDelay(
+                    new TopicQueueListener(subId, queueUrl, false, sqsClient, consumptionExecutor, agoraMDCDataSetter, agoraMDCDataCleaner, metricsHandler),
                     subscriptionConfig.getPollingIntervalMs(), subscriptionConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
 
             DLQConfiguration dlqConfig = subscriptionConfig.getDLQConfig();
             if(dlqConfig.isEnabled()) {
-                String dlqName = queueName + QUEUE_NAME_DELIMITER + DLQ_NAME_POSTFIX;
+                String fullSQSDlqName = fullSQSQueueName + QUEUE_NAME_DELIMITER + DLQ_NAME_POSTFIX;
 
-                String dlqUrl = sqsClient.createQueue(dlqName).getQueueUrl();
+                String dlqUrl = sqsClient.createQueue(fullSQSDlqName).getQueueUrl();
                 sqsClient.setQueueAttributes(dlqUrl, dlqConfig.asSQSQueueAttributes());
 
                 String dlqArn = sqsClient.getQueueAttributes(dlqUrl, Arrays.asList("QueueArn")).getAttributes().get("QueueArn");
                 sqsClient.setQueueAttributes(queueUrl, Collections.singletonMap("RedrivePolicy",
                         "{\"maxReceiveCount\":\"" + subscriptionConfig.getMaxReceiveCount() + "\", \"deadLetterTargetArn\":\"" + dlqArn + "\"}"));
 
-                logger.info("DLQ {} configured for topic {}.", dlqUrl, subscriptionConfig.getTopicName());
+                logger.info("DLQ {} configured for subscription {}.", dlqUrl, subId);
 
-                listenersExecutor.scheduleWithFixedDelay(new TopicQueueListener(subscriptionConfig.getTopicName(), dlqUrl,
-                                                                                true, sqsClient, consumptionExecutor, agoraMDCDataSetter, agoraMDCDataCleaner, metricsHandler),
+                listenersExecutor.scheduleWithFixedDelay(
+                        new TopicQueueListener(subId, dlqUrl, true, sqsClient, consumptionExecutor, agoraMDCDataSetter, agoraMDCDataCleaner, metricsHandler),
                         dlqConfig.getPollingIntervalMs(), dlqConfig.getPollingIntervalMs(), TimeUnit.MILLISECONDS);
+            }
+        }
+    }
+
+    private void checkSubscriptionIds(ConsumerConfiguration consumerConfig) {
+        HashSet<SubscriptionId> ids = new HashSet<>();
+        for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
+            if(! ids.add(subscriptionConfig.getSubId())) {
+                throw new IllegalStateException("Duplicate subscriptionId: " + subscriptionConfig.getSubId());
             }
         }
     }

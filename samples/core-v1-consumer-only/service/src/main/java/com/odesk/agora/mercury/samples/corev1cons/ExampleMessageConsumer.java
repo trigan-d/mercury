@@ -2,6 +2,7 @@ package com.odesk.agora.mercury.samples.corev1cons;
 
 import com.odesk.agora.mercury.MercuryMessage;
 import com.odesk.agora.mercury.consumer.MercuryConsumers;
+import com.odesk.agora.mercury.consumer.config.SubscriptionId;
 import com.yammer.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,12 +19,12 @@ public class ExampleMessageConsumer implements Managed {
 
     @Override
     public void start() throws Exception {
-        MercuryConsumers.setConsumer("MercuryTestCoreV1", this::logMessage);
+        MercuryConsumers.setConsumer(SubscriptionId.forTopic("MercuryTestCoreV1"), this::logMessage);
     }
 
     @Override
     public void stop() throws Exception {
-        MercuryConsumers.removeConsumer("MercuryTestCoreV1");
+        MercuryConsumers.removeConsumer(SubscriptionId.forTopic("MercuryTestCoreV1"));
     }
 
     private void logMessage(MercuryMessage message) {

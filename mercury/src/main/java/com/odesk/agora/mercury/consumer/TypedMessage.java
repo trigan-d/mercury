@@ -1,6 +1,7 @@
 package com.odesk.agora.mercury.consumer;
 
 import com.odesk.agora.mercury.MercuryMessage;
+import com.odesk.agora.mercury.consumer.config.SubscriptionId;
 
 import java.util.function.Consumer;
 
@@ -9,8 +10,8 @@ import java.util.function.Consumer;
  * <p>
  * Type-safe wrapper for Mercury message containing a deserialized version of {@link MercuryMessage#serializedPayload}.
  * Should not be instantiated directly. The instances are created on the fly by the deserializing consumer registered with
- * {@link MercuryConsumers#setDeserializingConsumer(String, MercuryConsumers.DeserializerForClass, Consumer)} or
- * {@link MercuryConsumers#setTypedConsumer(String, Class, Consumer)}.
+ * {@link MercuryConsumers#setDeserializingConsumer(SubscriptionId, MercuryConsumers.DeserializerForClass, Consumer)} or
+ * {@link MercuryConsumers#setTypedConsumer(SubscriptionId, Class, Consumer)}.
  */
 public class TypedMessage<T> extends MercuryMessage {
     private final T payload;

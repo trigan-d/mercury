@@ -24,10 +24,11 @@ public class TopicSubscriptionConfiguration extends QueueConfiguration {
     }
 
     /**
-     * The name of Mercury topic to subscribe.
+     * The subscription identifier.
      */
     @NotNull
-    private String topicName;
+    @Valid
+    private SubscriptionId subId;
 
     /**
      * The max number of attempts to process the message.
@@ -60,9 +61,6 @@ public class TopicSubscriptionConfiguration extends QueueConfiguration {
     @NotNull
     private boolean createSNSTopic = true;
 
-    public String getTopicName() {
-        return topicName;
-    }
 
     public int getMaxReceiveCount() {
         return maxReceiveCount;
@@ -74,5 +72,9 @@ public class TopicSubscriptionConfiguration extends QueueConfiguration {
 
     public boolean isCreateSNSTopic() {
         return createSNSTopic;
+    }
+
+    public SubscriptionId getSubId() {
+        return subId;
     }
 }
