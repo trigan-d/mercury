@@ -1,7 +1,7 @@
 package com.odesk.agora.mercury.consumer.config;
 
 import com.amazonaws.util.StringUtils;
-import com.odesk.agora.mercury.consumer.ListenersRunner;
+import com.odesk.agora.mercury.sqs.SQSUtils;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -51,7 +51,7 @@ public class SubscriptionId implements Serializable {
         if(StringUtils.isNullOrEmpty(queueName)) {
             return topicName;
         } else {
-            return topicName + ListenersRunner.QUEUE_NAME_DELIMITER + queueName;
+            return topicName + SQSUtils.QUEUE_NAME_DELIMITER + queueName;
         }
     }
 

@@ -10,7 +10,8 @@ import com.odesk.agora.mercury.consumer.config.DLQConfiguration;
 import com.odesk.agora.mercury.consumer.config.SubscriptionId;
 import com.odesk.agora.mercury.consumer.config.TopicSubscriptionConfiguration;
 import com.odesk.agora.mercury.publisher.config.PublisherConfiguration;
-import com.odesk.agora.mercury.publisher.TopicPublishersFactory;
+import com.odesk.agora.mercury.sns.SNSUtils;
+import com.odesk.agora.mercury.sqs.SQSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +36,6 @@ import java.util.function.Consumer;
  */
 public class ListenersRunner {
     private static final Logger logger = LoggerFactory.getLogger(ListenersRunner.class);
-
-    public static final String QUEUE_NAME_DELIMITER = "-";
-    public static final String DLQ_NAME_POSTFIX = "DLQ";
 
     private final ScheduledExecutorService listenersExecutor;
 
@@ -71,13 +69,11 @@ public class ListenersRunner {
         for (TopicSubscriptionConfiguration subscriptionConfig : consumerConfig.getTopicSubscriptions()) {
             SubscriptionId subId = subscriptionConfig.getSubId();
 
-            String fullSQSQueueName = consumerConfig.getQueueNamesPrefix() + QUEUE_NAME_DELIMITER + subId;
-            String queueUrl = sqsClient.createQueue(fullSQSQueueName).getQueueUrl();
+            String queueUrl = sqsClient.createQueue(SQSUtils.getFullSQSQueueName(consumerConfig, subId)).getQueueUrl();
             sqsClient.setQueueAttributes(queueUrl, subscriptionConfig.asSQSQueueAttributes());
 
             if (subscriptionConfig.isCreateSNSTopic()) {
-                String fullSNSTopicName = publisherConfig.getTopicNamesPrefix() + TopicPublishersFactory.TOPIC_NAME_DELIMITER + subId.getTopicName();
-                String topicArn = snsClient.createTopic(fullSNSTopicName).getTopicArn();
+                String topicArn = snsClient.createTopic(SNSUtils.getFullSNSTopicName(publisherConfig, subId.getTopicName())).getTopicArn();
                 String subscriptionArn = Topics.subscribeQueue(snsClient, sqsClient, topicArn, queueUrl);
                 snsClient.setSubscriptionAttributes(subscriptionArn, "RawMessageDelivery", "true");
                 logger.info("Mercury topic {} prepared for consuming. TopicArn={}, queueUrl={}, subscriptionArn={}", subId.getTopicName(), topicArn, queueUrl, subscriptionArn);
@@ -91,9 +87,7 @@ public class ListenersRunner {
 
             DLQConfiguration dlqConfig = subscriptionConfig.getDLQConfig();
             if(dlqConfig.isEnabled()) {
-                String fullSQSDlqName = fullSQSQueueName + QUEUE_NAME_DELIMITER + DLQ_NAME_POSTFIX;
-
-                String dlqUrl = sqsClient.createQueue(fullSQSDlqName).getQueueUrl();
+                String dlqUrl = sqsClient.createQueue(SQSUtils.getFullSQSQueueNameForDLQ(consumerConfig, subId)).getQueueUrl();
                 sqsClient.setQueueAttributes(dlqUrl, dlqConfig.asSQSQueueAttributes());
 
                 String dlqArn = sqsClient.getQueueAttributes(dlqUrl, Arrays.asList("QueueArn")).getAttributes().get("QueueArn");
