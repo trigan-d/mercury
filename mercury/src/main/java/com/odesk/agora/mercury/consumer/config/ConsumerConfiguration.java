@@ -53,11 +53,13 @@ public class ConsumerConfiguration {
      */
     public List<TopicSubscriptionConfiguration> getTopicSubscriptions() {
         return Collections.unmodifiableList(Arrays.asList(
-                    subscription1, subscription2, subscription3, subscription4, subscription5,
-                    subscription6, subscription7, subscription8, subscription9, subscription10,
-                    subscription11, subscription12, subscription13, subscription14, subscription15,
-                    subscription16, subscription17, subscription18, subscription19, subscription20 //etc...
-            ).stream().filter(sub -> (sub != null && sub.getTopicName() != null)).collect(Collectors.toList()));
+                subscription1, subscription2, subscription3, subscription4, subscription5,
+                subscription6, subscription7, subscription8, subscription9, subscription10,
+                subscription11, subscription12, subscription13, subscription14, subscription15,
+                subscription16, subscription17, subscription18, subscription19, subscription20 //etc...
+        ).stream()
+                .filter(sub -> (sub != null && sub.getSubId() != null && sub.getSubId().getTopicName() != null))
+                .collect(Collectors.toList()));
     }
 
     public void setQueueNamesPrefix(String queueNamesPrefix) {

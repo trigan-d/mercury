@@ -127,7 +127,10 @@
         </publisher>
         <consumer>
             <subscription1>
-                <topicName>MercuryTestCoreV2</topicName>
+                <subId>
+                    <topicName>MercuryTestCoreV2</topicName>
+                    <queueName>main</queueName>
+                </subId>
                 <pollingIntervalMs>5000</pollingIntervalMs>
             </subscription1>
         </consumer>

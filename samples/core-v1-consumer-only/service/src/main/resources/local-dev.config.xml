@@ -96,7 +96,9 @@
         </sqs>
         <consumer>
             <subscription1>
-                <topicName>MercuryTestCoreV1</topicName>
+                <subId>
+                    <topicName>MercuryTestCoreV1</topicName>
+                </subId>
                 <pollingIntervalMs>5000</pollingIntervalMs>
             </subscription1>
         </consumer>

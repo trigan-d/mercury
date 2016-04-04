@@ -3,6 +3,7 @@ package com.odesk.agora.mercury.publisher;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.odesk.agora.mercury.AgoraMDCData;
 import com.odesk.agora.mercury.publisher.config.PublisherConfiguration;
+import com.odesk.agora.mercury.sns.SNSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +18,6 @@ import java.util.function.Supplier;
  */
 public class TopicPublishersFactory {
     private static final Logger logger = LoggerFactory.getLogger(TopicPublishersFactory.class);
-
-    public static final String TOPIC_NAME_DELIMITER = "-";
 
     private final PublisherConfiguration publisherConfig;
     private final AmazonSNSClient snsClient;
@@ -61,8 +60,8 @@ public class TopicPublishersFactory {
      * Automatically creates SNS topic if it doesn't exist yet.
      */
     public TopicPublisher getPublisherForTopic(String topicName) {
-        return topicPublishers.computeIfAbsent(publisherConfig.getTopicNamesPrefix() + TOPIC_NAME_DELIMITER + topicName, prefixedName -> {
-            String topicArn = snsClient.createTopic(prefixedName).getTopicArn();
+        return topicPublishers.computeIfAbsent(SNSUtils.getFullSNSTopicName(publisherConfig, topicName), fullSNSTopicName -> {
+            String topicArn = snsClient.createTopic(fullSNSTopicName).getTopicArn();
             logger.info("SNS topic {} prepared for publishing. TopicArn is {}", topicName, topicArn);
             return new TopicPublisher(topicName, topicArn, snsClient, senderAppId, messageIdSupplier, agoraMDCDataGetter, metricsHandler);
         });

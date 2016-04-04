@@ -6,6 +6,7 @@ import com.odesk.agora.guice.GuiceModule;
 import com.odesk.agora.mercury.consumer.MercuryConsumers;
 import com.odesk.agora.mercury.consumer.PlainSQSConsumers;
 import com.odesk.agora.mercury.consumer.TypedMessage;
+import com.odesk.agora.mercury.consumer.config.SubscriptionId;
 import com.odesk.agora.thrift.hello.THello;
 import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ public class Service extends AgoraApplication<Configuration, GuiceModule> {
         //MercuryConsumers.setConsumer("MercuryTestCoreV2", message -> logger.info("Received Mercury message {}", message.getSerializedPayload()));
 
         //json and thrift
-        MercuryConsumers.setTypedConsumer("MercuryTestCoreV2", THello.class, this::logHelloMessage);
+        MercuryConsumers.setTypedConsumer(SubscriptionId.forTopicWithQueue("MercuryTestCoreV2", "main"), THello.class, this::logHelloMessage);
 
         //DLQ example
         //MercuryConsumers.setConsumer("MercuryTestCoreV2", message -> { throw new RuntimeException("Message processing failed"); });

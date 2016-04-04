@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.odesk</groupId>
         <artifactId>agora</artifactId>
-        <version>1.22.2-AGORA-5678-SNAPSHOT</version>
+        <version>1.24.1-SNAPSHOT</version>
     </parent>
 
     <modules>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>com.odesk.agora</groupId>
             <artifactId>core</artifactId>
-            <version>1.22.2-AGORA-5678-SNAPSHOT</version>
+            <version>1.24.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

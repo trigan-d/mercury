@@ -11,6 +11,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.odesk.agora.mercury.MercuryMessage;
 import com.odesk.agora.mercury.consumer.MercuryConsumers;
+import com.odesk.agora.mercury.consumer.config.SubscriptionId;
 import com.odesk.agora.mercury.publisher.TopicPublisher;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Environment;
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class ScheduledLatencyInspector implements Managed {
     private static final Logger logger = LoggerFactory.getLogger(ScheduledLatencyInspector.class);
     private static final String TOPIC_NAME = "MercuryMonitor";
+    private static final SubscriptionId SUBSCRIPTION_ID = SubscriptionId.forTopic(TOPIC_NAME);
 
     @Inject
     private Configuration configuration;
@@ -60,7 +62,7 @@ public class ScheduledLatencyInspector implements Managed {
         publisherExecutor.scheduleAtFixedRate(this::publishMessage,
                 configuration.getPublicationIntervalMillis(), configuration.getPublicationIntervalMillis(), TimeUnit.MILLISECONDS);
 
-        MercuryConsumers.setConsumer(TOPIC_NAME, this::consumeMessage);
+        MercuryConsumers.setConsumer(SUBSCRIPTION_ID, this::consumeMessage);
 
         logger.info("Latency inspector started. PublicationInterval={}ms, HighLatencyThreshold={}ms, FailedDeliveryLatency={}ms.",
                 configuration.getPublicationIntervalMillis(), configuration.getHighLatencyThresholdMillis(), configuration.getFailedDeliveryLatencyMillis());
@@ -69,7 +71,7 @@ public class ScheduledLatencyInspector implements Managed {
     @Override
     public void stop() throws Exception {
         publisherExecutor.shutdown();
-        MercuryConsumers.removeConsumer("MercuryMonitor");
+        MercuryConsumers.removeConsumer(SUBSCRIPTION_ID);
     }
 
     private void publishMessage() {
