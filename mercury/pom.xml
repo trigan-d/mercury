@@ -4,7 +4,7 @@
 
     <groupId>com.odesk.agora.mercury</groupId>
     <artifactId>agora-mercury</artifactId>
-    <version>1.1.1-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -114,6 +114,6 @@
     <!--release setup-->
     <scm>
         <developerConnection>scm:git:ssh://git@stash.odesk.com:7999/agora/agora-mercury.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>agora-mercury-1.2.0</tag>
     </scm>
 </project>
