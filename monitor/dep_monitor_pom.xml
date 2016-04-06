@@ -10,151 +10,31 @@
     <packaging>pom</packaging>
 
     <properties>
-        <!--placeholders for propertyies populated by bamboo-->
         <bambooBuildVersion></bambooBuildVersion>
         <mercuryMonitor.version></mercuryMonitor.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.jets3t</groupId>
-            <artifactId>jets3t</artifactId>
-            <version>0.9.1a-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jets3t</groupId>
-            <artifactId>synchronize</artifactId>
-            <version>0.9.1a-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>4.1.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.1.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.odesk.agora.mercury.monitor</groupId>
-            <artifactId>service</artifactId>
-            <version>${mercuryMonitor.version}</version>
-        </dependency>
-
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.8</version>
-                <executions>
-                    <execution>
-                        <id>copy-monitor</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <excludeTransitive>true</excludeTransitive>
-                            <includeGroupIds>com.odesk.agora.mercury.monitor</includeGroupIds>
-                            <outputDirectory>${project.build.directory}/mercuryMonitor</outputDirectory>
-                            <stripVersion>true</stripVersion>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>unpack-monitor</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <excludeTransitive>true</excludeTransitive>
-                            <includeGroupIds>com.odesk.agora.mercury.monitor</includeGroupIds>
-                            <outputDirectory>${project.build.directory}/mercuryMonitor</outputDirectory>
-                            <includes>
-                                dev.config.xml,staging.config.xml,prod.config.xml,dynamic.dev.config.properties,dynamic.staging.config.properties,dynamic.prod.config.properties
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <id>rename_monitor</id>
-                        <phase>package</phase>
-                        <configuration>
-                            <target>
-                                <move file="${project.build.directory}/mercuryMonitor/service.jar"
-                                      tofile="${project.build.directory}/mercuryMonitor/mercuryMonitor.jar"/>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <executions>
-                    <execution>
-                        <phase>deploy</phase>
-                        <id>S3_upload</id>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>com.odesk.agora.maven</groupId>
+                <artifactId>s3deploy-maven-plugin</artifactId>
+                <version>1.0.4</version>
                 <configuration>
-                    <includeProjectDependencies>true</includeProjectDependencies>
-                    <includePluginDependencies>true</includePluginDependencies>
-                    <classpathScope>runtime</classpathScope>
-                    <executableDependency>
-                        <groupId>org.jets3t</groupId>
-                        <artifactId>synchronize</artifactId>
-                    </executableDependency>
-                    <!-- main class to invoke synchronization -->
-                    <mainClass>org.jets3t.apps.synchronize.Synchronize</mainClass>
-                    <arguments>
-                        <argument>-f</argument>
-                        <argument>-k</argument>
-                        <argument>-q</argument>
-                        <argument>--properties</argument>
-                        <argument>/home/bamboo-agent/aws.s3.synchronize.properties</argument>
-                        <argument>UP</argument>
-                        <argument>odesk-agora-prod-us-west-1/agora/versions/${bambooBuildVersion}</argument>
-                        <argument>${project.build.directory}/mercuryMonitor</argument>
-                    </arguments>
+                    <services>
+                        <service>
+                            <groupId>com.odesk.agora.mercury.monitor</groupId>
+                            <artifactId>service</artifactId>
+                            <version>${mercuryMonitor.version}</version>
+                            <serviceName>mercuryMonitor</serviceName>
+                        </service>
+                    </services>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jets3t</groupId>
-                        <artifactId>jets3t</artifactId>
-                        <version>0.9.1a-SNAPSHOT</version>
-                    </dependency>
-
-                    <dependency>
-                        <groupId>org.jets3t</groupId>
-                        <artifactId>synchronize</artifactId>
-                        <version>0.9.1a-SNAPSHOT</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>
+
     <repositories>
         <repository>
             <snapshots>
