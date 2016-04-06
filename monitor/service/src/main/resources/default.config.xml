@@ -64,6 +64,13 @@
         <vipAddress>mercuryMonitor.mercury.odesk.com</vipAddress>
     </eureka>
 
+    <logging>
+        <level>INFO</level>
+    </logging>
+    <requestLogging>
+        <level>INFO</level>
+    </requestLogging>
+
     <mercury>
         <publisher>
             <topicsForPublishing>MercuryMonitor</topicsForPublishing>
