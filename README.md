@@ -1,1 +1,2 @@
-Agora Mercury. Pluggable module for SNS-SQS messaging pipeline.
+Mercury is a publish/subscribe topic-based messaging pipeline built on top of Amazon Simple Notification Service and Simple Queue Service. It allows publishing messages to some topic from one application and then consuming them from that topic from other applications asynchronously.
+TBD...
