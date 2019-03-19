@@ -7,6 +7,6 @@
  * <p>
  * Start learning Mercury consumer side from {@link com.odesk.agora.mercury.consumer.MercuryConsumers}.
  * <p>
- * @see <a href="https://docs.google.com/document/d/14m73m0G68iBR4nwa1IIRdys5vWj4oCfxpo_zMAHAwMk">Mercury documentation at Google Docs</a>
+ * @see <a href="https://docs.google.com/document/d/1BPHDghDNt8646mqbcLCZRECNPetaHlMdHgo6877buyU">Mercury documentation at Google Docs</a>
  */
 package com.odesk.agora.mercury;
